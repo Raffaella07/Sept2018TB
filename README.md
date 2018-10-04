@@ -125,3 +125,4 @@ The time information is instead recorded in many different ways:
 ----------------timestamps on SIPMs are collected both on the amplified waveforms with CFD and on NINO with different LED (Leading Edge Discriminations): in this way lots of different timestamps
 			      can be taken into account to identify the right combination of detector and detector settings to obtain the better resolution.
 			      
+# Sept2018TB

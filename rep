@@ -1,0 +1,49 @@
+#!/bin/bash
+
+
+
+export PATH=/eos/cms/store/group/dpg_mtd/comm_mtd/TB/MTDTB_T10_May2018/raw/DataTree/
+export CFG=cfg/MTDTB_T10_May2018/MTDTB_T10_May2018_conf1.cfg
+for((j=0;j<5;j=$(($j+1)))); do
+    if [ $j -eq 0 ]; then
+	export start=142
+
+	export end=154
+    fi
+    if [ $j -eq 1 ]; then
+	export start=446
+	export end=454
+    fi
+    if [ $j -eq 2  ]; then
+	export start=483
+	export end=489
+    fi
+    if [ $j -eq 3 ]; then
+	export start=553
+	export end=554
+    fi
+    if [ $j -eq 4 ]; then
+	export start=515
+	export end=518
+    fi
+    echo "here"
+    export str=""
+    for((i=start;$i<=end;i=$(($i+1)))); do
+	if [ -d $PATH11$i ]; then
+	    export tmpstr=~ratramon/reco_ntuples
+	    echo $tmpstr
+	    ./bin/H4Reco.exe $CFG 11$i
+	    export tmpstr=$tmpstr"/11"$i".root"
+
+	    export str="$str $tmpstr"
+	fi
+    done
+
+    hadd -f  ../ConfDCR/ConfT100-B72-1.2DCRnew $str
+done
+exit 0
+
+case
+    
+
+

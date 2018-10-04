@@ -1,0 +1,122 @@
+This file contains the instructions to obtain merged files of runs with the same features (experimental setup, SIPM bias, NINO thresholds). The files obtained can be used as input files in the analysis macros to repeat the resolution analysis and check its results.
+
+The files to be merged can be found on lxplus at /eos/cms/store/group/dpg_mtd/comm_mtd/TB/MTDTB_T10_May2018/ntuples_v1/ 
+
+Each merged file is obtained by performing an hadd on different runs with the same features.
+
+Sintax to hadd : from terminal
+
+hadd mergedfilename.root {firstfile .. lastfile}.root otherfile.root
+
+     		^	  	     ^				^
+		|		     |				|
+	merged file     list of to be merged files	possible other file to merge
+
+Below there are the lists of files with different features and possible hadd command to be directly paste in terminal to obtain the final files:
+
+Already analyzed configurations:
+
+************************1.3**************************
+
+-Conf 1.3, SIPM bias 72V, NINO thr 100 ADC counts: {11601.root..11630.root} 
+
+hadd ConfT100-B72-1.3.root {11601..11630}.root
+
+-Conf 1.3, SIPM bias 72V, NINO thr 200 ADC counts: {11631.root..11640.root}
+
+hadd ConfT200-B72-1.3.root {11631..11640}.root
+
+-Conf 1.3, SIPM bias 72V, NINO thr 500 ADC counts: {11641.root..11648.root}
+
+hadd ConfT500-B72-1.3.root {11641..11648}.root
+
+-Conf 1.3, SIPM bias 72V, NINO thr 1000 ADC counts: {11649.root..11656.root}
+
+hadd ConfT1000-B72-1.3.root {11649.11656}.root
+
+-Conf 1.3, SIPM bias 72V, NINO thr 80 ADC counts: {11657.root..11664.root}
+
+hadd ConfT80-B72-1.3.root {11657..11664}.root
+
+-Conf 1.3, SIPM bias 72V, NINO thr 60 ADC counts: {11665.root..11672.root}
+
+hadd ConfT60-B72-1.3.root {11665..11672}.root
+
+-Conf 1.3, SIPM bias 72V, NINO thr 40 ADC counts: {11673.root..11678.root}
+
+hadd ConfT40-B72-1.3.root {11673..11678}.root
+
+-Conf 1.3, SIPM bias 71V, NINO thr 100 ADC counts: {11679.root..11684.root}
+
+hadd ConfT100-B71-1.3.root {11679..11684}.root
+
+-Conf 1.3, SIPM bias 70V, NINO thr 100 ADC counts: {11685.root..11691.root}
+
+hadd ConfT100-B70-1.3.root {11685..11691}.root
+
+************************4.1********************************
+
+-Conf 4.1, SIPM bias 72V, NINO thr 100 ADC counts: {12525.root..12709.root}
+
+hadd ConfT100-B72-4.1.root {12525..12709}.root
+
+
+*************************Other configurations******************************
+
+-Conf 1.1, SIPM bias 72V, NINO thr 200 ADC counts: {10944.root..10953.root}
+
+hadd ConfT200-B72-1.1.root {10944..10953}.root
+
+-Conf 1.1, SIPM bias 71V, NINO thr 200 ADC counts: {10954.root..10964.root}
+
+hadd ConfT200-B71-1.1.root {10954..10964}.root
+
+-Conf 1.1, SIPM bias 70V, NINO thr 200 ADC counts: {10965.root..10969.root}
+
+hadd ConfT200-B70-1.1.root {10965..10969}.root
+
+-Conf 1.1, SIPM bias 69V, NINO thr 200 ADC counts: {10970.root..10972.root}
+
+hadd ConfT200-B69-1.1.root {10970..10972}.root
+
+-Conf 1.1, SIPM bias 68V, NINO thr 200 ADC counts: {10974.root..10991.root}
+
+hadd ConfT200-B68-1.1.root {10974..10991}.root
+
+-Conf 1.1, SIPM bias 72V, NINO thr 500 ADC counts: {10992.root..10996.root}
+
+hadd ConfT500-B72-1.1.root {10992..10996}.root
+
+-Conf 1.1, SIPM bias 71V, NINO thr 500 ADC counts: {10998.root..11005.root}
+
+hadd ConfT500-B71-1.1.root {10944..11005}.root
+
+-Conf 1.1, SIPM bias 70V, NINO thr 500 ADC counts: {11006.root..11015.root}
+
+hadd ConfT500-B70-1.1.root {11006..11015}.root
+
+-Conf 1.1, SIPM bias 69V, NINO thr 500 ADC counts: {11016.root..11026.root}
+
+hadd ConfT500-B69-1.1.root {11016..11026}.root
+
+-Conf 1.1, SIPM bias 68V, NINO thr 500 ADC counts: {11027.root..11030.root}
+
+hadd ConfT500-B68-1.1.root {11027..11030}.root
+
+-Conf 1.1, SIPM bias 72V, NINO thr 1000 ADC counts: {11031.root..11044.root}
+
+hadd ConfT1000-B72-1.1.root {11031..11044}.root
+
+-Conf 1.1, SIPM bias 71V, NINO thr 1000 ADC counts: {11045.root..11054.root}
+
+hadd ConfT1000-B71-1.1.root {11045..11054}.root
+
+-Conf 1.1, SIPM bias 72V, NINO thr 1000 ADC counts: {11055.root..11062.root} NEW TRIGGER SYS
+
+hadd ConfT1000-B72-1.1T.root {11055..11062}.root
+
+-Conf 1.1, SIPM bias 71V, NINO thr 1000 ADC counts: {11063.root..11074.root} NEW TRIGGER SYS
+
+hadd ConfT1000-B72-1.1.root {11055..11062}.root
+
+

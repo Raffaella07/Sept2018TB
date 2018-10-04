@@ -25,28 +25,14 @@ void TResAmp(const char * filename){
 
 
 
-  const Int_t  nbinx=200,nbiny=150;
+  const Int_t  nbinx=200,nbiny=250;
 
  int i;
  Double_t sigma[50],erry[50],cut[50],errx[50];
-  rymin_l=7.6;
-  rymax_l=8.8;
-  rymin_r=7.6;
-  rymax_r=8.8;
+ Int_t nentries=digiTree->GetEntries();
+ Float_t Times1[nentries],Times2[nentries],Times3[nentries];
+
   
-  rymin_lc=-1;
-  rymax_lc=2;
-  rymin_rc=-1;
-  rymax_rc=2;
-
-  tymin=7.7;
-  tymax=8.4;
-  
-  tymin_c=6.8;
-
-  tymax_c=8.9;
-
-
   txmin=-0.3;
   txmax=0.8;
 
@@ -75,15 +61,39 @@ void TResAmp(const char * filename){
   digiTree->GetEntry(3);
   LEDi=LED300;
   
-  max=4096;
-  /*for(k=0; k<digiTree->GetEntries(); k++){
+   for(k=0;k<digiTree->GetEntries();k++){
     digiTree->GetEntry(k);
-    if (k%10000==0) cout<<"On entry " <<k<<endl;
-    if(amp_max[3]>max) {max=amp_max[3];}
-    if(amp_max[4]>max) {max=amp_max[4];}
-  //if(time[3]-time[4]>tmax && time[3]-time[4]<10) {tmax = time[3]-time[4];}
+    
+    if(time[1+LEDi]-time[0]<50 && time[1+LEDi]-time[0]>0) {Times1[k]=time[1+LEDi]-time[0];}
+    else{Times1[k]=Times2[k-1];}
+    if(time[2+LEDi]-time[0]<50 && time[2+LEDi]-time[0]>0) {Times2[k]=time[2+LEDi]-time[0];}
+    else{Times2[k]=Times2[k-1];}  
+    if((time[1+LEDi]+time[2+LEDi])/2-time[0]<50 && (time[1+LEDi]+time[2+LEDi])/2-time[0]>-10) {Times3[k]=(time[1+LEDi]+time[2+LEDi])/2-time[0];}
+    else{Times3[k]=Times3[k-1];}
+  }
+  
+  Double_t mean1=TMath::Mean(nentries,Times1)-1.2;
+  Double_t rms1=TMath::RMS(nentries,Times1);
+  cout<<mean1<<"_________"<<rms1<<endl;
+  Double_t mean2=TMath::Mean(nentries,Times2)-1.2;
+  Double_t rms2=TMath::RMS(nentries,Times2);
+  cout<<mean2<<"_________"<<rms2<<endl;
+  Double_t mean3=TMath::Mean(nentries,Times3)-1.2;
+  Double_t rms3=TMath::RMS(nentries,Times3);
+  cout<<mean3<<"_________"<<rms3<<endl;
 
-  } chiudo for */
+  rymin_l=mean1-0.5*rms1;
+  rymax_l=mean1+0.5*rms1;
+  rymin_r=mean2-0.5*rms2;
+  rymax_r=mean2+0.5*rms2;
+  
+ 
+  tymin=mean3-0.5*rms3;
+  tymax=mean3+0.5*rms3;
+
+
+  max=4096;
+ 
 
   for(k=0;k<digiTree->GetEntries();k++){
     if (k%10000==0) cout<<"On entry " <<k<<endl;
@@ -108,12 +118,12 @@ void TResAmp(const char * filename){
 
   TH2D* h2_l= new TH2D("h2_l", "histo h2_l",nbinx,rxmin,rxmax,nbiny,rymin_l,rymax_l);
   TH2D* h2_r= new TH2D("h2_r", "histo h2_r",nbinx,rxmin,rxmax,nbiny,rymin_r,rymax_r);
-  TH2D* h2_t= new TH2D("h2_t", "histo h2_tot",nbinx,txmin,txmax,nbiny,tymin,tymax);
+  TH2D* h2_t= new TH2D("h2_t", "histo h2_t",nbinx,txmin,txmax,nbiny,tymin,tymax);
 
   for(k=0;k<digiTree->GetEntries();k++){
 
     digiTree->GetEntry(k);
-
+    
 
     if (0.8*(fit_l->GetParameter(1)) < (amp_max[4]/max) && (amp_max[4]/max) < (3*fit_l->GetParameter(1)) && amp_max[0]/max > 0.4 && amp_max[0]/max < 0.75)
       {
@@ -122,59 +132,45 @@ void TResAmp(const char * filename){
 	h2_t->Fill((time[1+LEDi]-time[2+LEDi]),(time[1+LEDi]+time[2+LEDi])/2-time[0]);
 
       }//chiudo if
-	if(debug) cout << 0.8*fit_l->GetParameter(1) << " < " << amp_max[3]/max << " < " << 3*fit_l->GetParameter(1) << " ////  " << time[4+LEDi]-time[0] <<endl;
-	
 
   }//chiudo for k
-cout<<"HERE"<<endl;
-  for(k=0;k<nbinx;k++){
-    TH1D* histotemp_l;
-    TH1D* histotemp_r;
-    TH1D* histotemp_t;
 
+  
+  
+  TH1D* histotemp_l;
+  TH1D* histotemp_r;
+  TH1D* histotemp_t;
+  
+  for(k=0;k<nbinx;k++){
+    
     histotemp_l=h2_l->ProjectionY("h2_lprojY",k,k);
     histotemp_r=h2_r->ProjectionY("h2_rprojY",k,k);
-    //    histotemp_t=h2_t->ProjectionY("h2_tprojY",k,k);
-   
-    /*   xt[k]=txmin+(Float_t)(txmax-(txmin))/nbinx*k;
-    yt[k]=histotemp_t->GetMean();
-    rmsyt[k]=histotemp_t->GetMeanError();
-    RMS[2][k]= histotemp_t->GetRMS();
-    */
+  
     x_l[k]=rxmin+(rxmax-rxmin)/nbinx*k;
     y_l[k]=histotemp_l->GetMean();
     rmsy_l[k]=histotemp_l->GetMeanError();
     RMS[0][k]= histotemp_l->GetRMS();
-    
+  
     
     x_r[k]=rxmin+(rxmax-rxmin)/nbinx*k;
     y_r[k]=histotemp_r->GetMean();
     rmsy_r[k]=histotemp_r->GetMeanError();
     RMS[1][k]= histotemp_r->GetRMS();
-
-
+  
+      
     delete histotemp_l;
     delete histotemp_r;
-    delete histotemp_t;
-
+    
+    
     if(k%20==0) cout << k << " / " << nbinx << endl;
   }//chiudo for k
-  cout<<"HERE"<<endl;
-  /*
-  for(k=0;k<nbinx;k++){
-    for(j=0;j<nbiny;j++){
-      //      if (k>20 && k<70) cout <<"  "<< rymin_l+(rymax_l-rymin_l)/nbiny*j << "<" << y_l[k]-3*RMS[0][k] <<"     "<< rymin_l+(rymax_l-rymin_l)/nbiny*j << ">" << y_l[k]+3*RMS[0][k] <<endl; 
-      if (rymin_l+(rymax_l-rymin_l)/nbiny*j < y_l[k]-3*RMS[0][k] || rymin_l+(rymax_l-rymin_l)/nbiny*j > y_l[k]+3*RMS[0][k] )h2_l->SetBinContent(k,j,0);
-      if (rymin_r+(rymax_r- rymin_r)/nbiny*j < y_r[k]-3*RMS[1][k] || rymin_r+(rymax_r-rymin_r)/nbiny*j > y_r[k]+3*RMS[1][k] ) h2_r->SetBinContent(k,j,0);
-      // if (tymin+(tymax-tymin)/nbiny*j < yt[k]-3*RMS[2][k] || tymin+(tymax-tymin)/nbiny*j > yt[k]+3*RMS[2][k] ) h2_t->SetBinContent(k,j,0);
-    }
-    }*/
+    
   
-  TCanvas* wf_c =new TCanvas("wf_altro","Plot wf",1800,1100);
+  TCanvas* wf_c =new TCanvas("wf_altro","Plot wf_altro",1800,1100);
   TGraphErrors* graph_r=new TGraphErrors(nbinx-1,x_r,y_r,0,rmsy_r);
   TGraphErrors* graph_l=new TGraphErrors(nbinx-1,x_l,y_l,0,rmsy_l);
   TGraphErrors* graph_t=new TGraphErrors(nbinx-1,xt,yt,0,rmsyt);
-
+    
   TF1* hyp_r = new TF1("hyp_r","[0]+[2]*log(x+[1])",0.8,3);
   TF1* hyp_l = new TF1("hyp_l","[0]+[2]*log(x+[1])",0.8,3);
 
@@ -182,29 +178,24 @@ cout<<"HERE"<<endl;
   
   gStyle->SetOptStat("");
 
-
+  
   /* SetParameters*/
   hyp_l->SetParameter(0, 8.51);
-  // hyp_l->SetParameter(1, 5);
-  // hyp_l->SetParameter(2, 1.2);
-  /* hyp_l->SetParameter(3, -2.43e-2);
-  */
-  hyp_r->SetParameter(0, 8.51);
-
-
-  /* hyp_r->SetParameter(1, -1.54e1);
-  hyp_r->SetParameter(2, 4.28e-2);
-  hyp_r->SetParameter(3, -2.43e-2);
-  */
-
- 
- wf_c->Divide(3,2);
-
+  hyp_l->SetParameter(1, 5);
+  hyp_l->SetParameter(2, 1.2);
+  
+  hyp_r->SetParameter(0, 7);
+  hyp_r->SetParameter(1, -9e-2);
+  hyp_r->SetParameter(2, -1e-1);
+  
+  
+  wf_c->Divide(3,2);
+  
   wf_c->cd(1);
-
+  
   h2_l->GetYaxis()->SetTitle("t_left-t_MCP [ns]");
-
-   h2_l->GetXaxis()->SetTitle("max.amplitude [mV]");
+  
+  h2_l->GetXaxis()->SetTitle("max.amplitude [mV]");
   h2_l->Draw("COLZ");
   graph_l->Fit("hyp_l","0RL");
   graph_l->SetMarkerStyle(8);
@@ -233,13 +224,19 @@ cout<<"HERE"<<endl;
   graph_t->Draw("SAMEP");
   hyp_t->Draw("same");
 
+  rymin_lc=rymin_l-hyp_l->Eval(1);
+  rymax_lc=rymax_l-hyp_l->Eval(1);
+  rymin_rc=rymin_r-hyp_r->Eval(1);
+  rymax_rc=rymax_r-hyp_r->Eval(1);
+  tymin_c=tymin;
+  tymax_c=tymax;
 
-
+  cout<<"_____________________________________--"<<rymin_l<<"  "<<hyp_l->Eval(1.0)<<"   "<< hyp_l->GetParameter(0)<<endl;
   
   TH2D* hc_l= new TH2D("hc_l", "histo hc_l",nbinx,rxmin,rxmax,nbiny,rymin_lc,rymax_lc);
   TH2D* hc_r= new TH2D("hc_r", "histo hc_r",nbinx,rxmin,rxmax,nbiny,rymin_rc,rymax_rc);
   TH2D* hc_t= new TH2D("hc_t", "histo hc_t",nbinx,txmin,txmax,nbiny,tymin_c,tymax_c);
-  TH2D* hc_tdiff= new TH2D("hc_tdiff", "histo hc_t",nbinx,txmin,txmax,nbiny,tymin_c,tymax_c);
+  TH2D* hc_tdiff= new TH2D("hc_tdiff", "histo hc_tdiff",nbinx,txmin,txmax,nbiny,tymin_c,tymax_c);
   TH2D* hc_tl= new TH2D("hc_tl", "histo hc_tl",nbinx,0.8,3,nbiny,rymin_lc,rymax_lc);
   TH2D* hc_tr= new TH2D("hc_tr", "histo hc_tr",nbinx,0.8,3,nbiny,rymin_lc,rymax_lc);
   TH2D* hc_tot= new TH2D("hc_tot", "histo hc_tot",nbinx,0.8,3,nbiny,rymin_lc,rymax_lc);
@@ -251,52 +248,46 @@ cout<<"HERE"<<endl;
 
     if (0.8*(fit_l->GetParameter(1)) < (amp_max[4]/max) && (amp_max[4]/max) < (3*fit_l->GetParameter(1)) && amp_max[0]/max > 0.4 && amp_max[0]/max < 0.75)
       {
-	hc_l->Fill(amp_max[3]/(max*fit_l->GetParameter(1)),time[1+LEDi]-time[0]-hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1))));
-	hc_r->Fill(amp_max[4]/(max*fit_r->GetParameter(1)),time[2+LEDi]-time[0]-hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1))));
-	hc_t->Fill(time[1+LEDi]-hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1)))-time[2+LEDi]+hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1))),(time[1+LEDi]+time[2+LEDi])/2-time[0]-(hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1)))+hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1))))/2);
+	if(time[1+LEDi]-time[2+LEDi]<99 && time[1+LEDi]-time[2+LEDi]>-99)hc_l->Fill(amp_max[3]/(max*fit_l->GetParameter(1)),time[1+LEDi]-time[0]-hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1))));
+	if(time[1+LEDi]-time[2+LEDi]<99 && time[1+LEDi]-time[2+LEDi]>-99)hc_r->Fill(amp_max[4]/(max*fit_r->GetParameter(1)),time[2+LEDi]-time[0]-hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1))));
+	if(time[1+LEDi]-time[2+LEDi]<99 && time[1+LEDi]-time[2+LEDi]>-99)hc_t->Fill(time[1+LEDi]-hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1)))-time[2+LEDi]+hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1))),(time[1+LEDi]+time[2+LEDi])/2-time[0]-(hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1)))+hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1))))/2);
 
-	if(debug) cout << 0.8*fit_l->GetParameter(1) << " < " << amp_max[3]/max << " < " << 3*fit_l->GetParameter(1) << " ////  " << time[4+LEDi]-time[0] <<endl;
       }
 
   }//chiudo for k
   
-  
-
-     for(k=0;k<nbinx;k++){
-    TH1D* histotemp_l;
-    TH1D* histotemp_r;
-    TH1D* histotemp_t;
-
-    histotemp_l=hc_l->ProjectionY("hc_lprojY",k,k);
-    histotemp_r=hc_r->ProjectionY("hc_rprojY",k,k);
-    histotemp_t=hc_t->ProjectionY("hc_tprojY",k,k);
-   
-    xt[k]=txmin +(Float_t)(txmax-txmin)*k/nbinx;
-    yt[k]=histotemp_t->GetMean();
-    RMS[2][k]= histotemp_t->GetMeanError();
-
-    x_l[k]=rxmin+(Float_t)(rxmax-rxmin)*k/nbinx;
-    y_l[k]=histotemp_l->GetMean();
-    RMS[0][k]= histotemp_l->GetMeanError();
-
-    x_r[k]=rxmin+(Float_t)(rxmax-rxmin)*k/nbinx;
-    y_r[k]=histotemp_r->GetMean();
-    RMS[1][k]= histotemp_r->GetMeanError();
-
-
-    delete histotemp_l;
-    delete histotemp_r;
-    delete histotemp_t;
-
     
-  }//chiudo for k
-
-
+   for(k=0;k<nbinx;k++){
+     histotemp_l=hc_l->ProjectionY("hc_lprojY",k,k);
+     histotemp_r=hc_r->ProjectionY("hc_rprojY",k,k);
+     histotemp_t=hc_t->ProjectionY("hc_tprojY",k,k);
+     
+     xt[k]=txmin +(Double_t)(txmax-txmin)*k/nbinx;
+     yt[k]=histotemp_t->GetMean();
+     RMS[2][k]= histotemp_t->GetMeanError();
+     
+     x_l[k]=rxmin+(Double_t)(rxmax-rxmin)*k/nbinx;
+     y_l[k]=histotemp_l->GetMean();
+     RMS[0][k]= histotemp_l->GetMeanError();
+     
+     x_r[k]=rxmin+(Double_t)(rxmax-rxmin)*k/nbinx;
+     y_r[k]=histotemp_r->GetMean();
+     RMS[1][k]= histotemp_r->GetMeanError();
+     
+     
+     delete histotemp_l;
+     delete histotemp_r;
+     delete histotemp_t;
+     
+    
+   }//chiudo for k
+   
+   
    TGraphErrors* graph_lc = new TGraphErrors(nbinx-1,x_l,y_l,0,RMS[0]);
    TGraphErrors* graph_rc = new TGraphErrors(nbinx-1,x_r,y_r,0,RMS[1]);
    TGraphErrors* graph_tc = new TGraphErrors(nbinx-1,xt,yt,0,RMS[2]);
    TF1* fit_tdiff = new TF1("fit_tdiff","[0]+[1]*x",-0.1,0.65);
-   // fit_tdiff->SetParameter(1,8);
+   
    graph_tc->Fit("fit_tdiff");
 
    wf_c->cd(4);
@@ -330,11 +321,7 @@ cout<<"HERE"<<endl;
 
 
  
-  // graph_l->Fit("hyp_l","R");
-   //   graph_l->SetMarkerStyle(8);
-   // graph_l->SetMarkerSize(.5);
-  // graph_l->Draw("P");
-
+  
   wf_c->cd(5);
 
    hc_r->GetYaxis()->SetTitle("t_right-t_MCP [ns]");
@@ -343,63 +330,117 @@ cout<<"HERE"<<endl;
    graph_rc->SetMarkerStyle(8);
    graph_rc->SetMarkerSize(.5);
    graph_rc->Draw("P");
-
-     for(k=0;k<digiTree->GetEntries();k++){
-
-    digiTree->GetEntry(k);
-
-    if (0.8*(fit_l->GetParameter(1)) < (amp_max[4]/max) && (amp_max[4]/max) < (3*fit_l->GetParameter(1)) && amp_max[0]/max > 0.4 && amp_max[0]/max < 0.75)
-      {
-	
-	hc_tdiff->Fill(time[1+LEDi]-hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1)))-time[2+LEDi]+hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1))),(time[1+LEDi]+time[2+LEDi])/2-fit_tdiff->Eval(time[1+LEDi]-time[2+LEDi])+fit_tdiff->GetParameter(0)-time[0]-(hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1)))+hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1))))/2);
-	hc_tl->Fill(amp_max[3]/(max*fit_l->GetParameter(1)),(time[1+LEDi]+time[2+LEDi])/2/*-fit_tdiff->Eval(time[1+LEDi]-time[2+LEDi])*/-time[0]-(hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1)))+hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1))))/2);
-	hc_tr->Fill(amp_max[4]/(max*fit_r->GetParameter(1)),(time[1+LEDi]+time[2+LEDi])/2/*-fit_tdiff->Eval(time[1+LEDi]-time[2+LEDi])*/-time[0]-(hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1)))+hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1))))/2);
-
-	
-	if(debug) cout << 0.8*fit_l->GetParameter(1) << " < " << amp_max[3]/max << " < " << 3*fit_l->GetParameter(1) << " ////  " << time[4+LEDi]-time[0] <<endl;
-      }
-
-  }//chiudo for k
-    hc_tot->Add(hc_tl,hc_tr);
-    
-   for (i=0;i<nbinx/10;i++){
-     cut[i] =0.8+(Float_t)(1.5-0.8)*(i*10)/nbinx;  
-   }
-
-   for (i=0;i<nbinx/10;i++){
-     TF1* fit = new TF1("fit","gaus",-1,2);
-     TH1D* histotemp_t;
-     histotemp_t=hc_tot->ProjectionY("hc_totprojY",hc_tot->GetXaxis()->FindBin(cut[i]),hc_tot->GetXaxis()->FindBin(cut[i+1]));
-     cout << "____________" << hc_tot->GetXaxis()->FindBin(cut[i]) << hc_tot->GetXaxis()->FindBin(cut[i+1]) << endl;
+   
+   for(k=0;k<digiTree->GetEntries();k++){
      
-    histotemp_t->Fit("fit","0");
-    sigma[i]=sqrt((fit->GetParameter(2))*(fit->GetParameter(2))-0.015*0.015);
-    erry[i]=fit->GetParError(2);
-    errx[i]= (1.5-0.8)*10/(2*nbinx);
-    
-    delete histotemp_t;
-    delete fit;
-    // delete fit;
+     digiTree->GetEntry(k);
+     
+     if (0.8*(fit_l->GetParameter(1)) < (amp_max[4]/max) && (amp_max[4]/max) < (3*fit_l->GetParameter(1)) && amp_max[0]/max > 0.4 && amp_max[0]/max < 0.75)
+       {
+	 
+	 if(time[1+LEDi]-time[2+LEDi]<99 && time[1+LEDi]-time[2+LEDi]>-99) hc_tdiff->Fill(time[1+LEDi]-hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1)))-time[2+LEDi]+hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1))),(time[1+LEDi]+time[2+LEDi])/2-fit_tdiff->Eval(time[1+LEDi]-time[2+LEDi])+fit_tdiff->GetParameter(0)-time[0]-(hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1)))+hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1))))/2);
+	 
+	 if(time[1+LEDi]-time[2+LEDi]<99 && time[1+LEDi]-time[2+LEDi]>-99) hc_tl->Fill(amp_max[3]/(max*fit_l->GetParameter(1)),(time[1+LEDi]+time[2+LEDi])/2-time[0]-(hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1)))+hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1))))/2);
+	 
+	 if(time[1+LEDi]-time[2+LEDi]<99 && time[1+LEDi]-time[2+LEDi]>-99) hc_tl->Fill(amp_max[4]/(max*fit_r->GetParameter(1)),(time[1+LEDi]+time[2+LEDi])/2-time[0]-(hyp_r->Eval(amp_max[4]/(max*fit_r->GetParameter(1)))+hyp_l->Eval(amp_max[3]/(max*fit_l->GetParameter(1))))/2);
+	 
+	 
+      }
+     
+   }//chiudo for k
+
+   int npoints = 10;
+   rxmin+=0.1;
+   rxmax-=0.2;
+   for (i=1;i<nbinx/npoints+1;i++){
+     cut[i] =rxmin+(Double_t)(rxmax-rxmin)*(i*npoints)/nbinx;  
+   }
+   
+   TCanvas *proiettati;
+   TString histoname;
+   TString title;
+   TF1* fit;
+   bool SaveProjection=false;
+   Double_t XMinPlot=-0.3, XMaxPlot=0.3;
+
+   if(SaveProjection){
+     gSystem->Exec("rm -r -f HistoTResAmp");
+     gSystem->Exec("mkdir HistoTResAmp");
+   }
+   
+   for (i=1;i<nbinx/npoints+1;i++){
+     fit = new TF1("fit","gaus",XMinPlot,XMaxPlot);
+     fit->SetParameter(0,200);
+     fit->SetParameter(1,0);
+     fit->SetParameter(2,30e-2);
+     proiettati = new TCanvas("canvasProjection","",1200,800);
+
+     
+     histotemp_t=hc_tl->ProjectionY("hc_totprojY",hc_tot->GetXaxis()->FindBin(cut[i]),hc_tot->GetXaxis()->FindBin(cut[i+1]));
+     cout << "____________" << hc_tot->GetXaxis()->FindBin(cut[i])<<"_____" << hc_tot->GetXaxis()->FindBin(cut[i+1]) << endl;
+     histotemp_t->Fit("fit","R0");
+     
+     if(SaveProjection){
+       histoname="";
+       histoname.Append("HistoTResAmp/histo");
+       histoname.Append(to_string(i));
+       histoname.Append(".png");
+       
+       title="";
+       title.Append("Amp/MIP -> ");
+       title.Append(to_string(cut[i]));
+       title.Resize(title.Sizeof()-4);
+       title.Append("-");
+       title.Append(to_string(cut[i+1]));
+       title.Resize(title.Sizeof()-4);
+       
+       //histotemp_t->GetXaxis()->SetLimits(XMinPlot,XMaxPlot);
+       //fit->GetXaxis()->SetLimits(XMinPlot,XMaxPlot);
+       gStyle->SetOptFit(0110);
+       fit->GetXaxis()->SetTitle("t_{ave}-t_{MCP} [ns]");
+       fit->GetYaxis()->SetTitle("counts");
+       fit->SetTitle(title);
+       fit->Draw();
+       histotemp_t->Draw("SAME");
+       //fit->DrawF1(XMinPlot,XMaxPlot,"SAME");
+       
+       //gPad->WaitPrimitive();
+       proiettati->SaveAs(histoname);
+     }
+     
+     sigma[i]=sqrt((fit->GetParameter(2))*(fit->GetParameter(2))-0.015*0.015);
+     erry[i]=fit->GetParError(2);
+     errx[i]= (rxmax-rxmin)*npoints/(2*nbinx);
+     
+
+     delete histotemp_t;
+     delete fit;
+     delete proiettati;
    }
 
    
 				     
    TCanvas* c_TresAmp = new TCanvas("c_TresAmp","c_rest_plot",600,550);
-   TGraphErrors* TResAmp = new TGraphErrors(nbinx/10,cut,sigma,errx,erry);
-   TF1* fitramp = new TF1("fitramp","[0]+[1]/sqrt(x)",rxmin,rxmax-0.06);
+   TGraphErrors* TResAmp = new TGraphErrors(nbinx/npoints-3,cut,sigma,errx,erry);
+   TF1* fitramp = new TF1("fitramp","[0]+[1]/sqrt(x)",rxmin,rxmax);
+   TLine* intercept = new TLine(0.82,0.03,1.8,0.03);
+   intercept->SetLineColor(kBlue);
    gStyle->SetOptFit(1111);
-   fitramp->SetParameter(0,0.029);
-   fitramp->SetParameter(1,1e-2);
-   TResAmp->Fit("fitramp","L0R");
+
+   fitramp->SetParameter(0,0.0);
+   //fitramp->SetParLimits(0,0.0,10);
+   fitramp->SetParameter(1,100);
+   TResAmp->Fit("fitramp","0RL");
    TResAmp ->GetXaxis()->SetTitle("amp/mip peak");
    TResAmp ->GetYaxis()->SetTitle("sigma_{t_{ave}}(ns)");
    TResAmp ->SetMarkerStyle(8);
    TResAmp ->SetMarkerSize(.8);
-   TResAmp->GetXaxis()->SetLimits(0.0,3.0);
-   TResAmp->GetYaxis()->SetLimits(0.03,0.044);
-   
+
+   TResAmp->GetYaxis()->SetRangeUser(0.025,0.044);
+   TResAmp->GetXaxis()->SetLimits(0.82,1.8);
    TResAmp ->Draw("AP");
    fitramp->DrawF1(0,3,"same");
+   intercept->Draw("same");
 
       
 }

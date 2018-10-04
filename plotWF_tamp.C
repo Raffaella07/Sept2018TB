@@ -16,6 +16,8 @@ void plotWF_tamp(const char * filename){
   int k,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax;
   bool debug=false;
+  Int_t nentries=digiTree->GetEntries();
+  Float_t Times1[nentries],Times2[nentries],Times3[nentries];
   Double_t max=0,tmax=0;
   rxmin=0;
   rxmax=0.5;

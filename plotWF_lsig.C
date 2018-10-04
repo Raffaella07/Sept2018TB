@@ -13,7 +13,7 @@ void plotWF_lsig(const char * filename){
 
 
   Float_t amp_max[54], time[54];
-  int k,maxbin_l,maxbin_r,maxbin_t;
+  int k,maxbin_l,maxbin_r,maxbin_t,LED300;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax;
   bool debug=false;
   Double_t max=0,tmax=0;
@@ -21,7 +21,7 @@ void plotWF_lsig(const char * filename){
   rxmax=0.5;
 
 
-  const Int_t  nbinx=100,nbiny=500;
+  const Int_t  nbinx=100,nbiny=550;
 
   rymin_l=5;
   rymax_l=21;
@@ -45,6 +45,7 @@ void plotWF_lsig(const char * filename){
 
   digiTree->SetBranchAddress("amp_max",&amp_max);
   digiTree->SetBranchAddress("time",&time);
+    digiTree->SetBranchAddress("LED300",&LED300);
   // digiTree->SetBranchAddress("LED30",&LED30);
   //digiTree->SetBranchAddress("LED50",&LED50);
 
@@ -87,9 +88,9 @@ void plotWF_lsig(const char * filename){
 
     if (0.8*(fit_l->GetParameter(1)) < (amp_max[3]/max) && (amp_max[3]/max) < (3*fit_l->GetParameter(1)))
       {
-	h2_l->Fill(amp_max[3]/max,time[3+6]-time[0]);
-	h2_r->Fill(amp_max[4]/max,time[4+6]-time[0]);
-	h2_m->Fill((amp_max[3]+amp_max[4])/(2*max),(time[3+6]+time[4+6])/2-time[0]);
+	h2_l->Fill(amp_max[3]/max,time[1+LED300]-time[0]);
+	h2_r->Fill(amp_max[4]/max,time[2+LED300]-time[0]);
+	h2_m->Fill((amp_max[3]+amp_max[4])/(2*max),(time[1+LED300]+time[2+LED300])/2-time[0]);
 
 
 	if(debug) cout << 0.8*fit_l->GetParameter(1) << " < " << amp_max[3]/max << " < " << 3*fit_l->GetParameter(1) << " ////  " << time[4]-time[0] <<endl;
@@ -128,8 +129,8 @@ void plotWF_lsig(const char * filename){
   gStyle->SetOptStat("");
   gStyle->SetOptFit();
   histotemp_r->SetLineColor(kRed);
-  histotemp_l->SetLineColor(kBlue);
-  
+  histotemp_m->SetLineColor(kBlack);
+  g_m->SetLineColor(kBlack);
 
  
 
@@ -137,10 +138,10 @@ void plotWF_lsig(const char * filename){
   histotemp_m->GetYaxis()->SetTitle("counts");
   
   histotemp_m->Draw();
-  histotemp_r->Draw("same");
-  histotemp_l->Draw("same");
-  g_l->Draw("same");
-  g_r->Draw("same");
+  // histotemp_r->Draw("same");
+  // histotemp_l->Draw("same");
+  // g_l->Draw("same");
+  // g_r->Draw("same");
   g_m->Draw("same");
 
  

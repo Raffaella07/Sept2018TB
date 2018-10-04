@@ -2,3 +2,10 @@ trees_TB
 *.C~
 *.d
 *.root
+HistoTResAmp
+*#
+*_C.d
+*.so
+*.pcm
+HDCRPlot
+Pd

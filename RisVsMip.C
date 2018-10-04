@@ -26,26 +26,10 @@ void Ris(const char * filename,Double_t* sigma,Double_t* ssigma,Double_t valMIP)
 
 
   const Int_t  nbinx=100,nbiny=120;
-
-  
-  rymin_l=7.6;
-  rymax_l=8.8;
-  rymin_r=7.6;
-  rymax_r=8.8;
+  Int_t nentries=digiTree->GetEntries();
+  Float_t Times1[nentries],Times2[nentries],Times3[nentries];
   
   
-  rymin_lc=6.8;
-  rymax_lc=8.5;
-  rymin_rc=6.8;
-  rymax_rc=8.5;
-
-  tymin=7.7;
-  tymax=8.8;
-  
-  tymin_c=6.8;
-
-  tymax_c=8.5;
-
 
   txmin=-0.3;
   txmax=0.8;
@@ -75,6 +59,39 @@ void Ris(const char * filename,Double_t* sigma,Double_t* ssigma,Double_t valMIP)
   digiTree->GetEntry(3);
   LEDi=LED300;
   
+    for(k=0;k<digiTree->GetEntries();k++){
+    digiTree->GetEntry(k);
+    //cout<<"HERE"<<endl;
+    if(time[1+LEDi]-time[0]<50 && time[1+LEDi]-time[0]>0) {Times1[k]=time[1+LEDi]-time[0];}
+    else{Times1[k]=Times2[k-1];}
+    if(time[2+LEDi]-time[0]<50 && time[2+LEDi]-time[0]>0) {Times2[k]=time[2+LEDi]-time[0];}
+    else{Times2[k]=Times2[k-1];}  
+    if((time[1+LEDi]+time[2+LEDi])/2-time[0]<50 && (time[1+LEDi]+time[2+LEDi])/2-time[0]>-10) {Times3[k]=(time[1+LEDi]+time[2+LEDi])/2-time[0];}
+    else{Times3[k]=Times3[k-1];}
+  }
+  
+  Double_t mean1=TMath::Mean(nentries,Times1)-1.2;
+  Double_t rms1=TMath::RMS(nentries,Times1);
+  cout<<mean1<<"_________"<<rms1<<endl;
+  Double_t mean2=TMath::Mean(nentries,Times2)-1.2;
+  Double_t rms2=TMath::RMS(nentries,Times2);
+  cout<<mean2<<"_________"<<rms2<<endl;
+  Double_t mean3=TMath::Mean(nentries,Times3)-1.2;
+  Double_t rms3=TMath::RMS(nentries,Times3);
+  cout<<mean3<<"_________"<<rms3<<endl;
+
+  rymin_l=mean1-0.5*rms1;
+  rymax_l=mean1+0.5*rms1;
+  rymin_r=mean2-0.5*rms2;
+  rymax_r=mean2+0.5*rms2;
+    
+  
+
+  tymin=mean3-0.5*rms3;
+  tymax=mean3+0.5*rms3;
+  
+
+
   max=4096;
   /*for(k=0; k<digiTree->GetEntries(); k++){
     digiTree->GetEntry(k);
@@ -115,7 +132,6 @@ void Ris(const char * filename,Double_t* sigma,Double_t* ssigma,Double_t valMIP)
     digiTree->GetEntry(k);
 
 
-    //if (0.8*(fit_l->GetParameter(1)) < (amp_max[4]/max) && (amp_max[4]/max) < (3*fit_l->GetParameter(1)) && amp_max[0]/max > mcp_amp->GetMean()-1*mcp_amp->GetRMS() && amp_max[0]/max < mcp_amp->GetMean()+1*mcp_amp->GetRMS())
     if (0.8*(valMIP) < (amp_max[4]/max) && (amp_max[4]/max) < (3*valMIP) && amp_max[0]/max > mcp_amp->GetMean()-1*mcp_amp->GetRMS() && amp_max[0]/max < mcp_amp->GetMean()+1*mcp_amp->GetRMS())
       {
 	h2_l->Fill(amp_max[3]/max,time[1+LEDi]-time[0]);
@@ -155,21 +171,16 @@ void Ris(const char * filename,Double_t* sigma,Double_t* ssigma,Double_t valMIP)
     RMS[1][k]= histotemp_r->GetRMS();
 
 
+
+
+    
     delete histotemp_l;
     delete histotemp_r;
     delete histotemp_t;
 
     if(k%20==0) cout << k << " / " << nbinx << endl;
   }//chiudo for k
-  /*
-  for(k=0;k<nbinx;k++){
-    for(j=0;j<nbiny;j++){
-      //      if (k>20 && k<70) cout <<"  "<< rymin_l+(rymax_l-rymin_l)/nbiny*j << "<" << y_l[k]-3*RMS[0][k] <<"     "<< rymin_l+(rymax_l-rymin_l)/nbiny*j << ">" << y_l[k]+3*RMS[0][k] <<endl; 
-      if (rymin_l+(rymax_l-rymin_l)/nbiny*j < y_l[k]-3*RMS[0][k] || rymin_l+(rymax_l-rymin_l)/nbiny*j > y_l[k]+3*RMS[0][k] )h2_l->SetBinContent(k,j,0);
-      if (rymin_r+(rymax_r- rymin_r)/nbiny*j < y_r[k]-3*RMS[1][k] || rymin_r+(rymax_r-rymin_r)/nbiny*j > y_r[k]+3*RMS[1][k] ) h2_r->SetBinContent(k,j,0);
-      // if (tymin+(tymax-tymin)/nbiny*j < yt[k]-3*RMS[2][k] || tymin+(tymax-tymin)/nbiny*j > yt[k]+3*RMS[2][k] ) h2_t->SetBinContent(k,j,0);
-    }
-    }*/
+
   
   TCanvas* wf_c =new TCanvas("wf","Plot wf",1800,1100);
   TGraphErrors* graph_r=new TGraphErrors(nbinx-1,x_r,y_r,0,rmsy_r);
@@ -186,17 +197,13 @@ void Ris(const char * filename,Double_t* sigma,Double_t* ssigma,Double_t valMIP)
 
   /* SetParameters*/
   hyp_l->SetParameter(0, 8.51);
-  hyp_l->SetParameter(1, 0.1);
-  hyp_l->SetParameter(2, 5);
+  hyp_l->SetParameter(1, 5);
+  hyp_l->SetParameter(2, 1.2);
   /* hyp_l->SetParameter(3, -2.43e-2);
   */
-  hyp_r->SetParameter(0, 8.51);
-  /* hyp_r->SetParameter(1, -1.54e1);
-  hyp_r->SetParameter(2, 4.28e-2);
-  hyp_r->SetParameter(3, -2.43e-2);
-  */
-
- 
+  hyp_r->SetParameter(0, 7);
+  hyp_r->SetParameter(1, -9e-2);
+  hyp_r->SetParameter(2, -1e-1);
 
   wf_c->Divide(2,1);
 
@@ -233,6 +240,12 @@ void Ris(const char * filename,Double_t* sigma,Double_t* ssigma,Double_t valMIP)
   //hyp_t->DrawF1(txmin,txmax,"same");
 
 
+  rymin_lc=rymin_l-hyp_l->Eval(0.25)+hyp_l->GetParameter(0);
+  rymax_lc=rymax_l-hyp_l->Eval(0.25)+hyp_l->GetParameter(0);
+  rymin_rc=rymin_r-hyp_r->Eval(0.25)+hyp_r->GetParameter(0);
+  rymax_rc=rymax_r-hyp_r->Eval(0.25)+hyp_r->GetParameter(0);
+  tymin_c=tymin;
+  tymax_c=tymax;
 
   
   TH2F* hc_l= new TH2F("hc_l", "histo hc_l",nbinx,rxmin,rxmax,nbiny,rymin_lc,rymax_lc);

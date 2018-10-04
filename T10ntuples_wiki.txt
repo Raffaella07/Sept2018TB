@@ -3,7 +3,10 @@
 This file contains information on the structure and main variable of the ntuples of the T10 May 2018 TesBeam (LYSO Crystal Bar time resolution).
 
 The good ntuples(both for data and pedestals) are available on lxplus on /eos/cms/store/group/dpg_mtd/comm_mtd/TB/MTDTB_T10_May2018/ntuples_v1/
-The TestBeam logbook (info on configurations' different settings) is available at https://docs.google.com/spreadsheets/d/1ArGOxF1clg_I_9lgCssy9A57RwJ98hGXUgBIKj3aCq4/edit#gid=1831808220
+
+The TestBeam logbook (info on configurations' different settings) is available at https://docs.google.com/spreadsheets/d/1ArGOxF1clg_I_9lgCssy9A57RwJ98hGXUgBIKj3aCq4/edit#gid=1831808220 
+
+
 
 Each ntuple contains 4 trees:
      --info
@@ -31,9 +34,16 @@ ____index of reference for both run and event (format run0000000event0)
 ____WF_samples: total number of samples collected for a single event;
 ____WF_ch(vector): each sample taken is associated to the channel it belongs by the value of this vector at given sample (e.g. wf_ch[45]=2 means that the 45th sample belongs to the second channel
 waveform). There are 6 or 8 channels in the configurations studied since now:
+
+									     --0 - MCP pulse signal
+	   	       							     --1/2- NINO amplified signal x 2 
+									     --3/4- Amplified signal x 2
+									     -- Unkown channel (almost always noise);*
+									     --6/7- trigger delayed signal x 2**
 	   	       	    	     	         --0 - MCP pulse signal
 						 --1/2- NINO amplified signal x 2																					    --3/4- Amplified signal x 2
 						 -- Unkown channel (almost always noise)*;																				    --6/7- trigger delayed signal x 2**
+
 
 
 
@@ -61,8 +71,9 @@ Each different detector or detector+settings system is identified with an intege
 A stamp of the encoding is below:
 
 There are also: --- index: to retrieve run and event number (format as in info);
-      	     	---n_channel: the number of channel recorded (6/8);
-			 ---n_timetypes: the number of different time acquisition recorded and encoded;
+      	   	---n_channel: the number of channel recorded (6/8);
+		---n_timetypes: the number of different time acquisition recorded and encoded;
+
 
 amp_max and time, are both n_timetypes long for each recorded event.
 
@@ -72,5 +83,5 @@ first n_channel entries.
 The time information is instead recorded in many different ways:
 ----------------timestamps on the MCP signal are always taken in CFD (Constant Fraction Discrimination, fixed at 50%) to take care of the detector noisy behaviour;
 ----------------timestamps on SIPMs are collected both on the amplified waveforms with CFD and on NINO with different LED (Leading Edge Discriminations): in this way lots of different timestamps
-			      can be taken into account to identify the right combination of detector and detector settings to obtain the better resolution.
-			      
+
+		can be taken into account to identify the right combination of detector and detector settings to obtain the better resolution.

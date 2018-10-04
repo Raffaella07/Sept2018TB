@@ -9,29 +9,33 @@ void AmpSpatUnif(const char * filename){
   TFile*  file= TFile::Open(filename);
   //TTree * WFTree = (TTree*)file->Get("wf");
   TTree* digiTree = (TTree*)file->Get("digi");
+  TTree* hodoTree = (TTree*)file->Get("hodo");
 
+  unsigned int timetypes;
 
+  digiTree->SetBranchAddress("n_timetypes",&timetypes);
 
-  Float_t amp_max[54], time[54];
+  digiTree->GetEntry(3);
+  Float_t amp_max[timetypes], time[timetypes],Y[2];
   int k,j,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
   bool blind=true;
   Double_t max=0;
   Int_t LED300,LED100,LED50,LED30;
-  Int_t LEDi;
+  Int_t LEDi,PTK1,AMP1,AMP2,NINO1,NINO2,CFD;
   rxmin=0;
-  rxmax=0.5;
+  rxmax=1;
 
   Int_t nentries=digiTree->GetEntries(), counter1=0, counter2=0, counter3=0;
   Float_t Times1[nentries],Times2[nentries],Times3[nentries];
 
-  const Int_t  nbinx=100,nbiny=120;
+  const Int_t  nbinx=150,nbiny=300;
 
 
   
-  txmin=-0.3;
-  txmax=0.8;
+  txmin=-20;
+  txmax=20;
 
 
   Double_t x_r[nbinx],y_r[nbiny], x_l[nbinx],y_l[nbiny],rmsy_l[nbiny],rmsy_r[nbiny];
@@ -44,16 +48,24 @@ void AmpSpatUnif(const char * filename){
   TH1F *mcp_amp =new TH1F("mcp_amp","histomcp_ampl",nbinx,0.0,1);
 
 
-  TF1 *fit_r = new TF1("f_r","landau",0.08,1);
-  TF1 *fit_l = new TF1("f_l","landau",0.08,1);
+  TF1 *fit_r = new TF1("f_r","landau",0.15,1);
+  TF1 *fit_l = new TF1("f_l","landau",0.02,1);
 
 
   digiTree->SetBranchAddress("amp_max",&amp_max);
   digiTree->SetBranchAddress("time",&time);
-  digiTree->SetBranchAddress("LED300",&LED300);
+  digiTree->SetBranchAddress("LED",&LED300);
   digiTree->SetBranchAddress("LED100",&LED100);
   digiTree->SetBranchAddress("LED50",&LED50);
   digiTree->SetBranchAddress("LED30",&LED30);
+  digiTree->SetBranchAddress("PTK1",&PTK1);
+  digiTree->SetBranchAddress("CFD",&CFD);
+  digiTree->SetBranchAddress("AMP1",&AMP1);
+  digiTree->SetBranchAddress("AMP2",&AMP2);
+  digiTree->SetBranchAddress("NINO1",&NINO1);
+  digiTree->SetBranchAddress("NINO2",&NINO2);
+     
+  hodoTree->SetBranchAddress("Y",&Y);
 
   digiTree->GetEntry(3);
   LEDi=LED300;
@@ -96,23 +108,27 @@ void AmpSpatUnif(const char * filename){
   tymin=mean3-1.1*rms3;
   tymax=mean3+0.8*rms3;
   
+  rymin_l=0;
+  rymax_l=10;
+  rymin_r=0;
+  rymax_r=10;
+    
   
-
-
-  txmin=-0.3;
-  txmax=0.8;
-
   
-  max=4096;
+  tymin=0;
+  tymax= 5;
+
+
+   max=4096;
 
 
   for(k=0;k<digiTree->GetEntries();k++){
     if (k%10000==0) cout<<"On entry " <<k<<endl;
     digiTree->GetEntry(k);
 
-    hr_amp->Fill(amp_max[3]/max);
-    hl_amp->Fill(amp_max[4]/max);
-    mcp_amp->Fill(amp_max[0]/max);
+    hr_amp->Fill(amp_max[AMP2]/max);
+    hl_amp->Fill(amp_max[AMP1]/max);
+    mcp_amp->Fill(amp_max[PTK1]/max);
 
   }/*chiudo for */
 
@@ -131,20 +147,26 @@ void AmpSpatUnif(const char * filename){
   TH2F* h2_r= new TH2F("h2_r", "histo h2_r",nbinx,rxmin,rxmax,nbiny,rymin_r,rymax_r);
   TH2F* h2_t= new TH2F("h2_t", "histo h2_t",nbinx,txmin,txmax,nbiny,tymin,tymax);
 
-  for(k=0;k<digiTree->GetEntries();k++){
+   for(k=0;k<digiTree->GetEntries();k++){
 
     digiTree->GetEntry(k);
-
-
-    if (0.8*(fit_l->GetParameter(1)) < (amp_max[4]/max) && (amp_max[4]/max) < (3*fit_l->GetParameter(1)) && amp_max[0]/max > mcp_amp->GetMean()-1*mcp_amp->GetRMS() && amp_max[0]/max < mcp_amp->GetMean()+1*mcp_amp->GetRMS())
-      {
-	h2_l->Fill(amp_max[3]/max,time[1+LEDi]-time[0]);
-	if (amp_max[4]/max < 0.35)h2_r->Fill(amp_max[4]/max,time[2+LEDi]-time[0]);
-	h2_t->Fill((time[1+LEDi]-time[2+LEDi]),(time[1+LEDi]+time[2+LEDi])/2-time[0]);
-
-      }//chiudo if
-
-  }//chiudo for k
+    hodoTree->GetEntry(k);
+       if (amp_max[PTK1]/max>0.08 && amp_max[PTK1]/max < 0.55){
+	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) ){ 	h2_l->Fill(amp_max[AMP1]/max,time[NINO1+LEDi]-time[0+CFD]);
+	 }
+	 if (((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) ){ h2_r->Fill(amp_max[AMP2]/max,time[NINO2+LEDi]-time[0+CFD]);
+	 }
+	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) || ((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) )
+	   {
+	     
+	     
+	     h2_t->Fill(Y[0],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]);
+	     //	cout << "__________________" << X[0] << endl;
+	   }//chiudo if
+       }
+    
+}//chiudo for k
+ 
 
 
   for(k=0;k<nbinx;k++){
@@ -185,8 +207,8 @@ void AmpSpatUnif(const char * filename){
   TGraphErrors* graph_l=new TGraphErrors(nbinx-1,x_l,y_l,0,rmsy_l);
   TGraphErrors* graph_t=new TGraphErrors(nbinx-1,xt,yt,0,rmsyt);
 
-  TF1* hyp_r = new TF1("hyp_r","[0]+[2]*log(x+[1])",0.135,0.35);
-  TF1* hyp_l = new TF1("hyp_l","[0]+[2]*log(x+[1])",0.11,0.35);
+  TF1* hyp_r = new TF1("hyp_r","[0]+[1]*x+[2]*x**2+[3]*x**3+[4]*1/(x+[5])",0.15,0.80);
+  TF1* hyp_l = new TF1("hyp_l","[0]+[1]*x+[2]*x**2+[3]*x**3",0.03,0.15);
 
   TF1* hyp_t = new TF1("hyp_t","[1]*x**2+[2]*x+[0]",-0.1,0.65);
   
@@ -231,37 +253,42 @@ void AmpSpatUnif(const char * filename){
   wf_c->cd(3);
   h2_t->GetYaxis()->SetTitle("t_ave-t_MCP [ns]");
   h2_t->GetXaxis()->SetTitle("t_left-t_right [ns]");
-  h2_t->Draw("COLZ");
-  graph_t->Fit("hyp_t","RL0");
+  h2_t->Draw("LEGO");
+  graph_t->Fit("hyp_t","L0");
   graph_t->SetMarkerStyle(8);
   graph_t->SetMarkerSize(.5);
   graph_t->Draw("P");
   hyp_t->DrawF1(txmin,txmax,"same");
 
-  rymin_lc=rymin_l-hyp_l->Eval(0.25)+hyp_l->GetParameter(0);
-  rymax_lc=rymax_l-hyp_l->Eval(0.25)+hyp_l->GetParameter(0);
+  rymin_lc=rymin_l-hyp_l->Eval(0.05)+hyp_l->GetParameter(0);
+  rymax_lc=rymax_l-hyp_l->Eval(0.05)+hyp_l->GetParameter(0);
   rymin_rc=rymin_r-hyp_r->Eval(0.25)+hyp_r->GetParameter(0);
   rymax_rc=rymax_r-hyp_r->Eval(0.25)+hyp_r->GetParameter(0);
   tymin_c=tymin;
   tymax_c=tymax;
 
   
-  TH2F* hc_l= new TH2F("hc_l", "histo hc_l",nbinx,-1,1,nbiny,0,1);
-  TH2F* hc_r= new TH2F("hc_r", "histo hc_r",nbinx,-1,1,nbiny,0,1);
+  TH2F* hc_l= new TH2F("hc_l", "histo hc_l",nbinx,-20,20,nbiny,0,1);
+  TH2F* hc_r= new TH2F("hc_r", "histo hc_r",nbinx,-20,20,nbiny,0,1);
   
 
 
   
    for(k=0;k<digiTree->GetEntries();k++){
     digiTree->GetEntry(k);
-    
-    if (0.8*(fit_l->GetParameter(1)) < (amp_max[4]/max) && (amp_max[4]/max) < (3*fit_l->GetParameter(1)) && amp_max[0]/max > 0.4 && amp_max[0]/max < 0.75)
+    hodoTree->GetEntry(k);
+     
+     if (amp_max[PTK1]/max>0.08 && amp_max[PTK1]/max < 0.55){
+	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) )
+   
      {
-       hc_l->Fill(time[1+LEDi]/*-hyp_l->Eval(amp_max[3]/max)+hyp_l->GetParameter(0)*/-time[2+LEDi]/*-hyp_r->Eval(amp_max[4]/max)+hyp_r->GetParameter(0))*/, amp_max[3]/max);
-       hc_r->Fill(time[1+LEDi]/*-hyp_l->Eval(amp_max[3]/max)+hyp_l->GetParameter(0)*/-time[2+LEDi]/*-hyp_r->Eval(amp_max[4]/max)+hyp_r->GetParameter(0))*/, amp_max[4]/max);
-    }
-    
-   }//chiudo for k
+       hc_l->Fill(Y[0], amp_max[AMP1]/max);
+     }
+     if ((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1))) ){ 
+       hc_r->Fill(Y[0], amp_max[AMP2]/max);
+     }
+     }
+     }//chiudo for k
    cout<<"_______________________________________"<<hc_r->GetEntries()<<endl;
    wf_c->cd(4);
    hc_l->Draw("COLZ");
@@ -269,8 +296,8 @@ void AmpSpatUnif(const char * filename){
    hc_r->Draw("COLZ");
    
    Float_t xmin,xmax;
-   xmin=-1;
-   xmax=1;
+   xmin=-20;
+   xmax=20;
    
    TH1D* histotemp_l;
    TH1D* histotemp_r;
@@ -326,8 +353,8 @@ void AmpSpatUnif(const char * filename){
 
   TCanvas* newcanv = new TCanvas();
   graph_rt->Draw("AP");
-  graph_rt->GetXaxis()->SetLimits(-0.3,0.7);
-  graph_rt->GetYaxis()->SetLimits(0.12,0.24);
+  graph_rt->GetXaxis()->SetLimits(-20,20);
+  // graph_rt->GetYaxis()->SetLimits(0.12,0.24);
   graph_lt->Draw("SAMEP");
 
   l1->Draw();

@@ -448,7 +448,7 @@ rymax_rc=rymax_r-hyp_r->Eval(fit_r->GetParameter(1)+0.5*fit_r->GetParameter(2))+
      histotemp_t[i]->Fit(("fit"+to_string(i)).c_str(),"R");
      histotemp_t[i]->Draw();
      
-     sigma[i]=fit[i]->GetParameter(2);
+     sigma[i]=sqrt(fit[i]->GetParameter(2)*fit[i]->GetParameter(2)-0.015*0.015);
      erry[i]=fit[i]->GetParError(2);
      errx[i]= (txmax-txmin)*13/(2*nbinx);
 

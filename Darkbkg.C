@@ -146,7 +146,7 @@ void Darkbkg(){
 
      plotWF_cut(filename.c_str(),amp_l[i],amp_r[i], &Mipl[0][i],&sMipl[0][i],&Mipr[0][i],&sMipr[0][i]);
 
-     filename = "DCR/ConfT100-B72-1.2DCR"+to_string((int)DCR[i])+".root";
+     filename = "DCR/ConfT500-B72-1.2DCR"+to_string((int)DCR[i])+".root";
      
      plotWF_cut(filename.c_str(),amp_ldcr[i],amp_rdcr[i],&Mipl[1][i],&sMipl[1][i],&Mipr[1][i],&sMipr[1][i]);
      bgk_l[i]->Add(amp_ldcr[i],amp_l[i],1,-1);

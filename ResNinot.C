@@ -206,12 +206,12 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
   h2_l->GetYaxis()->SetTitle("t_left-t_MCP [ns]");
 
    h2_l->GetXaxis()->SetTitle("max.amplitude [mV]");
-   //  h2_l->Draw("COLZ");
+   h2_l->Draw("COLZ");
   graph_l->Fit("hyp_l","0RL");
   graph_l->SetMarkerStyle(8);
   graph_l->SetMarkerSize(.5);
   // graph_l->Draw("SAMEP");
-  //  hyp_l->Draw("same");
+  //hyp_l->Draw("same");
 
 
   // wf_c->cd(2);
@@ -234,18 +234,20 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
   //  graph_t->Draw("SAMEP");
   // hyp_t->Draw("same");
 
-  rymin_lc=rymin_l-hyp_l->Eval(0.25)+hyp_l->GetParameter(0);
-  rymax_lc=rymax_l-hyp_l->Eval(0.25)+hyp_l->GetParameter(0);
-  rymin_rc=rymin_r-hyp_r->Eval(0.25)+hyp_r->GetParameter(0);
-  rymax_rc=rymax_r-hyp_r->Eval(0.25)+hyp_r->GetParameter(0);
-  tymin_c=tymin;
-  tymax_c=tymax;
+  rymin_lc=rymin_l-hyp_l->Eval(fit_l->GetParameter(1)+0.5*fit_l->GetParameter(2))+hyp_l->GetParameter(0);
+  rymax_lc=rymax_l-hyp_l->Eval(fit_l->GetParameter(1)+0.5*fit_l->GetParameter(2))+hyp_l->GetParameter(0);
+  rymin_rc=rymin_r-hyp_r->Eval(fit_r->GetParameter(1)+0.5*fit_r->GetParameter(2))+hyp_r->GetParameter(0);
+  rymax_rc=rymax_r-hyp_r->Eval(fit_r->GetParameter(1)+0.5*fit_r->GetParameter(2))+hyp_r->GetParameter(0);
+  tymin_c=tymin-(hyp_l->Eval(0.25)-hyp_l->GetParameter(0)+hyp_r->Eval(0.25)-hyp_r->GetParameter(0))/2;
+  tymax_c=tymax-(hyp_l->Eval(0.25)-hyp_l->GetParameter(0)+hyp_r->Eval(0.25)-hyp_r->GetParameter(0))/2;
+
+
 
   
   TH2F* hc_l= new TH2F("hc_l", "histo hc_l",nbinx,rxmin,rxmax,nbiny,rymin_lc,rymax_lc);
   TH2F* hc_r= new TH2F("hc_r", "histo hc_r",nbinx,rxmin,rxmax,nbiny,rymin_rc,rymax_rc);
   TH2F* hc_t= new TH2F("hc_t", "histo hc_t",nbinx,txmin,txmax,nbiny,tymin_c,tymax_c);
-  TH2F* hc_tdiff= new TH2F("hc_tdiff", "histo hc_tdiff",nbinx,txmin,txmax,nbiny,tymin_c,tymax_c);
+  TH2F* hc_tdiff= new TH2F("hc_tdiff", "histo hc_tdiff",nbinx,txmin,txmax,nbiny,7,15);
   
 
   
@@ -387,7 +389,7 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
    histo_cr = hc_r->ProjectionY("histo_cr",0,nbinx);
    histo_ct = hc_t->ProjectionY("histo_ct",0,nbinx);
    histo_ctdiff[index] = hc_tdiff->ProjectionY("histo_ctdiff",0,nbinx);
-   gaus_ctdiff[index]= new TF1(((string)("gaus_ctdiff"+to_string(index))).c_str(),"gaus",histo_ctdiff[index]->GetMean()-4*histo_ctdiff[index]->GetRMS(),histo_ctdiff[index]->GetMean()+4*histo_ctdiff[index]->GetRMS());
+   gaus_ctdiff[index]= new TF1(((string)("gaus_ctdiff"+to_string(index))).c_str(),"gaus",7.572,11);
 
    histo_ct->SetLineColor(kBlack);
    histo_cl->SetLineColor(kBlue);
@@ -397,7 +399,7 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
   
    histo_cl->Fit("gaus_cl");
    histo_cr->Fit("gaus_cr");
-   if (blind==true) histo_ct->Fit("gaus_ct");
+   if (blind==true) histo_ct->Fit("gaus_ct", "R");
 
    /*
   
@@ -414,7 +416,7 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
    // l2->AddEntry(histo_ct,"t_ave-t_MCP");
    l2->AddEntry(histo_ctdiff[index],"t_ave-t_MCP(tdiff corr)");
    // gaus_ctdiff->SetLineColor(kGreen);
-   histo_ctdiff[index]->Fit(((string)("gaus_ctdiff"+to_string(index))).c_str());
+   histo_ctdiff[index]->Fit(((string)("gaus_ctdiff"+to_string(index))).c_str(),"R");
    *sigma=gaus_ctdiff[index]->GetParameter(2);
    *ssigma= gaus_ctdiff[index]->GetParError(2); 
    // histo_ctdiff->SetLineColor(kGreen);
@@ -430,7 +432,7 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
 
 void ResNinot(){
   int i;
-  const  int nbias= 7;
+  const  int nbias= 3;
   string filename;
   string n;
 
@@ -438,13 +440,13 @@ void ResNinot(){
   Double_t sigma[nbias],ssigma[nbias];
  
 
-  bias[0] =40;
-  bias[1] =60;
-  bias[2] =80;
-  bias[3] =100;
-  bias[4] =200;
-  bias[5] =500;
-  bias[6] =1000;
+ 
+ 
+  bias[0] =100;
+  bias[1] =200;
+  bias[2] =500;
+
+  
 
   TCanvas* tdiff = new TCanvas("tdiff","plot_tdiff",1800,1100);
   tdiff->Clear();
@@ -456,7 +458,7 @@ void ResNinot(){
   
     //    convert << bias[i];
     n=to_string((int)bias[i]);
-    filename = "Pd/Conf1.3/ConfT"+ n +"-1.3.root";
+    filename = "DCR/ConfT"+n+"-B72-1.2DCR500.root";
     plotWF_tdiff(filename.c_str(),&sigma[i],&ssigma[i],i,tdiff,bias);
 
   }

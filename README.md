@@ -1,24 +1,42 @@
 # TestBeamProg
 
--Wiki base delle ntuple utilizzate per l'analisi dei dati del Test Beam di MAGGIO 2018 A T10
+-Ntuples_wiki: basic Wiki for ntuples from T10 May 2018 Test Beam on crystal bars
 
--plotWF.C(Conf,nevento) plotta le 6 forme d'onda acquisite di un evento (con 0 le plotta in sequenza, non si ferma)
+-plotWF.C(Conf,nevento) plots the 6 wavwforms acquired in one event if given (string runname,int eventnumber), plots iteratively for all the events if given (string runname, int 0); expects a primitive to pass from one event to the next one
 
--ploWF_graph.C(Conf) plotta gli istogrammi delle ampiezze massime e crea un file histoConf.root con gli istogrammi
+-ploWF_graph.C(Conf) plots max amplitude distribuitions  and creates a file histoConf.root contaiing such distributions
 
--plotHisto.C(histoConf1,histoconf2) plotta gli istogrammi delle ampiezze massime delle forme d'onda
+-plotHisto.C(histoConf1,histoconf2) plots max amplitude distributions overlapped
 
--plotWF_fit.C(Conf) plotta gli istogrammi delle ampiezze massime delle forme d'onda e fa un fit con la funzione di Landau
+-plotWF_fit.C(Conf) plots max amplitude distributions and fits the distribuitions with a landau function
 
--plotWF_cut.C(Conf) plotta gli istogrammi delle ampiezze massime delle forme d'onda e fa un fit con la funzione di Landau e taglia gli eventi in un intervallo (0.8*MIP,3*MIP)
+-plotWF_cut.C(Conf) same as plotWF_fit.C + cuts on data inbetween (0.8*MIP,3*MIP)
 
--plotWF_tamp.C(Conf) plota gli istogrammi 2D di t_r-t_MCP t_l-t_MCP t_ave-t_MCP in funzione dell'ampiezza massima, fa un fit sui valori medi delle variabili temporali per ogni valore di dei bin dell'ampiezza massima.
+-plotWF_tamp.C(Conf) plots 2D histograms  t_r-t_MCP t_l-t_MCP t_ave-t_MCP vs max amplitude , fits on time averages of 1D histograms obtaining by summing 1D histograms at fixed max amplitude for bins of max amplitude. It uses time recorded with LED300 by default.
 
--plot_lsign.C(Conf) plotta una gaussiana con la sigma dei tempi calcolata senza correggere con il time walk.
+-plot_lsign.C(Conf) plots time distributions for uncorrected (no ampwalk, no tdiff) timestamps
 
--plotWF_su.C(Conf) plotta i valori di amp_max in funzione di t_left-t_right
+-plotWF_su.C(Conf) plots max amplitude vs t_left-t_right
 
--plotWF_corr.C(Conf) plotta i grafici di _tamp.C insime a quelli corretti con l'amplitude walk, sono stati usati i tempi calcolati con soglia LED30 (30 u.d.). Plotta infine la gaussiana con la distribuzione
+-plotWF_corr.C(Conf) plots same graphs as _tamp.C, redefines timestamps using fits done in _tamp.C and plots time distributions for the corrected timestamps
+
+-plotWF_tdiff.C
+
+-plotWF_time.C
+
+-TResAmp.C
+
+-RisRelVsMip
+
+-RisVsMip
+
+.RisRelVsTdiff
+
+-RisVsTdiff
+
+-DarkBkg
+
+
 
 
 

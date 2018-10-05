@@ -1,3 +1,95 @@
+TF1* fitGaus( TH1D* histo, float nSigma, bool addFunc ) {
+
+  float mean_histo = histo->GetMean();
+  float rms_histo  = histo->GetRMS();
+
+  TF1* f1_gaus = new TF1( Form("gaus_%s", histo->GetName()), "gaus", mean_histo-rms_histo, mean_histo+rms_histo );
+  f1_gaus->SetLineColor( 46 );
+
+  histo->Fit( f1_gaus->GetName(), "RQ0" );
+
+  float xMin_fit = f1_gaus->GetParameter(1) - nSigma*f1_gaus->GetParameter(2);
+  float xMax_fit = f1_gaus->GetParameter(1) + nSigma*f1_gaus->GetParameter(2);
+
+  f1_gaus->SetRange( xMin_fit, xMax_fit );
+
+
+  int n_iter = 5;
+
+  for( int i=0; i<n_iter; ++i ) { // iterative fit
+
+    if( i==n_iter-1 && addFunc )
+      histo->Fit( f1_gaus->GetName(), "RQ+" );
+    else {
+      histo->Fit( f1_gaus->GetName(), "RQ0" );
+      xMin_fit = f1_gaus->GetParameter(1) - nSigma*f1_gaus->GetParameter(2);
+      xMax_fit = f1_gaus->GetParameter(1) + nSigma*f1_gaus->GetParameter(2);
+      f1_gaus->SetRange( xMin_fit, xMax_fit );
+    }
+
+  } // for iter
+
+
+  return f1_gaus;
+
+}
+
+
+float getSigmaEff( TH1D* histo ) {
+
+  float percentIntegral = 0.683;
+  float integral = histo->Integral();
+  // first fit to find mode:
+  TF1* f1_gaus = fitGaus( histo, 1.5, false );
+ 
+ 
+ 
+  float mode = f1_gaus->GetParameter(1);
+  int maxBin = histo->FindBin( mode );
+
+  int nBins = histo->GetNbinsX();
+  float xMin = histo->GetXaxis()->GetXmin();
+  float xMax = histo->GetXaxis()->GetXmax();
+
+  TH1D* newHisto = new TH1D( Form("newHisto_%s", histo->GetName()), "", nBins, xMin, xMax);
+  newHisto->SetBinContent( maxBin, histo->GetBinContent(maxBin) );
+  newHisto->SetBinError( maxBin, histo->GetBinError(maxBin) );
+
+  Int_t iBin = maxBin;
+  Int_t delta_iBin =1;
+  Int_t sign  = 1;
+
+  float width = histo->GetBinWidth( maxBin );
+
+  while( newHisto->Integral() < percentIntegral*integral ) {
+
+    iBin += sign*delta_iBin;
+
+    newHisto->SetBinContent( iBin, histo->GetBinContent(iBin) );
+    newHisto->SetBinError( iBin, histo->GetBinError(iBin) );
+
+    width += histo->GetBinWidth( iBin );
+
+    delta_iBin += 1;
+    sign *= -1;
+
+  }
+
+  return width/2.;
+
+}
+
+
+
+double subtractResoPTK( double reso ) {
+
+  return sqrt( pow(reso,2) - pow(0.018,2) );
+
+}
+
+
+
+
 void AWtdiff(const char * filename){
 
 
@@ -21,9 +113,6 @@ void AWtdiff(const char * filename){
   Int_t LEDi,PTK1,AMP1,AMP2,NINO1,NINO2,CFD;
   rxmin=0;
   rxmax=1;
-
- 
-	
 
 
   const Int_t  nbinx=150,nbiny=300;
@@ -462,11 +551,11 @@ for(k=0;k<nbinx;k++){
   histotemp_t->Fit("gaus_t","0R");
   yt[k]=gaus_t->GetParameter(1);
   rmsyt[k]=gaus_t->GetParError(1);
-  TCanvas* contol = new TCanvas("cntol","contol_plt",600,550);
+  // TCanvas* contol = new TCanvas("cntol","contol_plt",600,550);
   gStyle->SetOptFit(1111);
   histotemp_t->GetXaxis()->SetRangeUser(1.5,3);
-  histotemp_t->Draw();
-  gaus_t->Draw("same");
+  // histotemp_t->Draw();
+  // gaus_t->Draw("same");
 
   
  
@@ -520,20 +609,25 @@ histo_cr = hc_r->ProjectionY("histo_cr",0,nbinx);
 histo_ct = hc_t->ProjectionY("histo_ct",0,nbinx);
 histo_ctdiff = hc_tdiff->ProjectionY("histo_ctdiff",0,nbinx);
 
-TF1* gaus_cl = new TF1("gaus_cl","gaus");
-TF1* gaus_cr = new TF1("gaus_cr","gaus");
-TF1* gaus_ct = new TF1("gaus_ct","gaus",2,3);
+//TF1* gaus_cl = new TF1("gaus_cl","gaus");
+//TF1* gaus_cr = new TF1("gaus_cr","gaus");
+//TF1* gaus_ct = new TF1("gaus_ct","gaus",2,3);
 TF1* gaus_ctdiff = new TF1("gaus_ctdiff","gaus", 2, 2.5);
+ 
 
+ 
 histo_ct->SetLineColor(kBlack);
 histo_cl->SetLineColor(kBlue);
 histo_cr->SetLineColor(kRed);
-gaus_ct->SetLineColor(kBlack);
+
 
 TCanvas* tdiff = new TCanvas("tdiff","plot_tdiff",600,550);
  TLegend* l2=new TLegend(0.1,0.7,0.48,0.9);
-
- histo_ct->Fit("gaus_ct","0R","SAME");
+ TF1* gaus_cl = fitGaus(histo_cl,2,false);
+ TF1* gaus_cr = fitGaus(histo_cr,2,false); 
+ TF1* gaus_ct = fitGaus(histo_ct,2,false); 
+ gaus_ct->SetLineColor(kBlack);
+ // histo_ct->Fit("gaus_ct","0R","SAME");
  //gaus_ctdiff->SetParameter(0,gaus_ct->GetParameter(0));
  // gaus_ctdiff->SetParameter(1,gaus_ct->GetParameter(1));
  //gaus_ctdiff->SetParameter(2,gaus_ct->GetParameter(2));
@@ -544,8 +638,8 @@ TCanvas* tdiff = new TCanvas("tdiff","plot_tdiff",600,550);
 
  histo_ctdiff->Draw();
  gaus_ctdiff->Draw("same");
- gaus_ct->Draw("SAME");
- histo_ct->Draw("SAME");
+ gaus_ct->Draw("same");
+ histo_ct->Draw("same");
 
 
 l2->SetHeader("t_{ave}-t_{MCP} distrib");
@@ -564,6 +658,7 @@ bool control=false;
 
 TH1D* histotemp_t[(int)nbinx/npt];
 TF1* fit[(int)nbinx/npt];
+double SigmaEff[(int)nbinx/npt];
 gSystem->Exec("mkdir slicetdiff");
 gSystem->Exec("cd slicetdiff");
 gROOT->SetBatch(kTRUE);
@@ -578,37 +673,52 @@ cut[nbinx/npt+1]=txmax-0.001;
 for (i=0;i<=nbinx/npt;i++){
   // if(control)rest_gaussine->cd(i+1);
   rest_gaussine[i]  = new TCanvas(((string)"rest_gaussine"+ to_string(i)).c_str(),((string)"rest_plotgaus"+to_string(i)).c_str(),600,550);
-  fit[i] = new TF1(((string)("fit"+to_string(i))).c_str(),"gaus",rymin_l+1,rymax_l-4);
+ 
   
-  histotemp_t[i]=hc_tdiff->ProjectionY(((string)("histoY"+to_string(i))).c_str(), hc_tdiff->GetXaxis()->FindBin(cut[i]), hc_tdiff->GetXaxis()->FindBin(cut[i+1]));
-  cout <<i<< "____________" << cut[i]<<"__________"<<cut[i+1]<<"__________" <<hc_tdiff->GetXaxis()->FindBin(cut[i])<<"_____________"<<hc_tdiff->GetXaxis()->FindBin(cut[i+1])<< endl;
+  histotemp_t[i]=hc_t->ProjectionY(((string)("histoY"+to_string(i))).c_str(), hc_t->GetXaxis()->FindBin(cut[i]), hc_t->GetXaxis()->FindBin(cut[i+1]));
+  fit[i] = fitGaus(histotemp_t[i],2,false);
+
+  cout <<i<< "____________" << cut[i]<<"__________"<<cut[i+1]<<"__________" <<hc_t->GetXaxis()->FindBin(cut[i])<<"_____________"<<hc_t->GetXaxis()->FindBin(cut[i+1])<< endl;
   gStyle->SetOptFit(00010);
   histotemp_t[i]->SetTitle((to_string(cut[i])+"->"+to_string(cut[i+1])).c_str());
   
-  histotemp_t[i]->Fit(("fit"+to_string(i)).c_str(),"R");
-  
   histotemp_t[i]->Draw();
-  
+  fit[i]->Draw("same");
   rest_gaussine[i]->SaveAs(((string)"slicetdiff/gaus_"+to_string(i)+(string)".eps").c_str());
   sigma[i]=fit[i]->GetParameter(2);
+  gPad->SetBatch(kFALSE);
+  SigmaEff[i]=getSigmaEff(histotemp_t[i]);
+  gPad->SetBatch(kTRUE);
   erry[i]=fit[i]->GetParError(2);
   errx[i]= (txmax-txmin)*npt/(2*nbinx);
   
  }
    //   if(!control) delete rest_gaussine;
 
-gROOT->SetBatch(kFALSE);
-TCanvas* rest_plot = new TCanvas("rest","rest_plot",600,550);
-TGraphErrors* rest = new TGraphErrors(nbinx/npt,cut,sigma,errx,erry);
-   
-rest->GetXaxis()->SetTitle("t_{left}-t_{right}(ns)");
-rest->GetYaxis()->SetTitle("#sigma_{t_{ave}}(ns)");
-rest->SetMarkerStyle(8);
-rest->SetMarkerSize(.8);
-rest->Draw("AP");
+ gROOT->SetBatch(kFALSE);
+ TCanvas* rest_plot = new TCanvas("rest","rest_plot",600,550);
+ TGraphErrors* rest = new TGraphErrors(nbinx/npt,cut,sigma,errx,erry);
+ TGraphErrors* rest_eff = new TGraphErrors(nbinx/npt,cut,SigmaEff,errx,erry);
+ TLegend* l4=new TLegend(0.5,0.8,0.5,0.8);
+ l4->SetHeader("Resolutions","C");
+ l4->AddEntry(rest,"#sigma (2RMS range fit)","P");
+ l4->AddEntry(rest_eff,"#sigma_{eff}: 0.683*gaussArea ","P");
+ rest->GetXaxis()->SetTitle("X(mm)");
+ rest->GetYaxis()->SetTitle("#sigma_{t_{ave}}(ns)");
+ rest->SetMarkerStyle(8);
+ rest->SetMarkerSize(.8);
+ rest->SetMarkerColor(kRed);
+ rest_eff->SetMarkerStyle(20);
+ rest_eff->SetMarkerSize(.8);
+ rest->GetYaxis()->SetRangeUser(0.05,0.03);
+ rest->Draw("AP");
+ rest_eff->Draw("SAMEP");
 
-bool ConfrontoTdiff=true;
-
+ l4->Draw();
+ rest_plot->SaveAs("FinalPlots/ResVsX.eps");
+ 
+ bool ConfrontoTdiff=true;
+ 
    if(ConfrontoTdiff){
      TCanvas* ConfCanv = new TCanvas("confronto","",1200,800);
      gStyle->SetOptFit();

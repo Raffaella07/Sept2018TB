@@ -9,3 +9,6 @@ HistoTResAmp
 *.pcm
 HDCRPlot
 Pd
+slicetdiff
+controlplots
+FinalPlots

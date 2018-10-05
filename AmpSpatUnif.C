@@ -16,7 +16,8 @@ void AmpSpatUnif(const char * filename){
   digiTree->SetBranchAddress("n_timetypes",&timetypes);
 
   digiTree->GetEntry(3);
-  Float_t amp_max[timetypes], time[timetypes],Y[2];
+  Float_t amp_max[timetypes], time[timetypes],X[2],Y[2];
+ 
   int k,j,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
@@ -37,8 +38,8 @@ void AmpSpatUnif(const char * filename){
   txmin=-20;
   txmax=20;
 
-
   Double_t x_r[nbinx],y_r[nbiny], x_l[nbinx],y_l[nbiny],rmsy_l[nbiny],rmsy_r[nbiny];
+  Double_t yoff_r[nbiny],yoff_l[nbiny];
   Double_t xt[nbinx],yt[nbinx],rmsyt[nbinx];
   Double_t RMS[3][nbinx];
 
@@ -66,7 +67,8 @@ void AmpSpatUnif(const char * filename){
   digiTree->SetBranchAddress("NINO2",&NINO2);
      
   hodoTree->SetBranchAddress("Y",&Y);
-
+  hodoTree->SetBranchAddress("X",&X);
+  
   digiTree->GetEntry(3);
   LEDi=LED300;
   
@@ -151,7 +153,8 @@ void AmpSpatUnif(const char * filename){
 
     digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
-       if (amp_max[PTK1]/max>0.08 && amp_max[PTK1]/max < 0.55){
+    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && X[0]>-11 && Y[0]>-2 && Y[0]<5){
+   
 	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) ){ 	h2_l->Fill(amp_max[AMP1]/max,time[NINO1+LEDi]-time[0+CFD]);
 	 }
 	 if (((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) ){ h2_r->Fill(amp_max[AMP2]/max,time[NINO2+LEDi]-time[0+CFD]);
@@ -160,7 +163,7 @@ void AmpSpatUnif(const char * filename){
 	   {
 	     
 	     
-	     h2_t->Fill(Y[0],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]);
+	     h2_t->Fill(X[0],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]);
 	     //	cout << "__________________" << X[0] << endl;
 	   }//chiudo if
        }
@@ -277,15 +280,16 @@ void AmpSpatUnif(const char * filename){
    for(k=0;k<digiTree->GetEntries();k++){
     digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
-     
-     if (amp_max[PTK1]/max>0.08 && amp_max[PTK1]/max < 0.55){
+
+     if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && X[0]>-11 && Y[0]>-2 && Y[0]<5){
+    
 	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) )
    
      {
-       hc_l->Fill(Y[0], amp_max[AMP1]/max);
+       hc_l->Fill(X[0], amp_max[AMP1]/max);
      }
      if ((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1))) ){ 
-       hc_r->Fill(Y[0], amp_max[AMP2]/max);
+       hc_r->Fill(X[0], amp_max[AMP2]/max);
      }
      }
      }//chiudo for k
@@ -328,35 +332,74 @@ void AmpSpatUnif(const char * filename){
    
   TGraphErrors* graph_rt=new TGraphErrors(newbin-1,x_r,y_r,0,RMS[0]);
   TGraphErrors* graph_lt=new TGraphErrors(newbin-1,x_l,y_l,0,RMS[1]);  
-  
+  TF1 *fit_ampr = new TF1("fit_ampr","[0]+[1]*x",txmin,txmax);
+  TF1 *fit_ampl = new TF1("fit_ampl","[0]+[1]*x",txmin,txmax);
+
+  graph_rt->Fit("fit_ampr","0");
+  graph_lt->Fit("fit_ampl","0");
+
+   for(k=0;k<newbin;k++){
+
+    yoff_r[k]=y_r[k]-fit_ampr->GetParameter(0);
+    yoff_l[k]=y_l[k]-fit_ampl->GetParameter(0);
+    
+    }
+    
+   TGraphErrors* graphnorm_rt=new TGraphErrors(newbin-1,x_r,yoff_r,0,RMS[0]);
+   TGraphErrors* graphnorm_lt=new TGraphErrors(newbin-1,x_l,yoff_l,0,RMS[1]);  
   //TCanvas* imma = new TCanvas("mycanv","title",1000,600);
   TLegend* l1=new TLegend(0.2,0.3,0.2,0.3);
   l1->SetHeader("SiPM","C");
   l1->AddEntry(graph_rt,"SiPM right");
   l1->AddEntry(graph_lt,"SiPM left");
   
-  graph_rt->GetXaxis()->SetTitle("t_{left}-t_{right} [ns]");
+  graph_rt->GetXaxis()->SetTitle("X[mm]");
   graph_rt->GetYaxis()->SetTitle("amp_{max} [mV]");
   
   graph_rt->SetMarkerStyle(8);
   graph_lt->SetMarkerStyle(8);
+  graphnorm_rt->SetMarkerStyle(20);
+  graphnorm_lt->SetMarkerStyle(20);
   
   graph_rt->SetMarkerSize(.8);
   graph_lt->SetMarkerSize(.8);
+  graphnorm_rt->SetMarkerSize(.8);
+  graphnorm_lt->SetMarkerSize(.8);
   
   graph_rt->SetMarkerColor(kRed);
   graph_lt->SetMarkerColor(kBlue);
+  fit_ampr->SetLineColor(kRed);
+  fit_ampl->SetLineColor(kBlue);
+  fit_ampr->SetLineStyle(2);
+  fit_ampl->SetLineStyle(2);
   wf_c->cd(5);
   graph_rt->Draw("SAMEP");
   wf_c->cd(4);
   graph_lt->Draw("SAMEP");
 
   TCanvas* newcanv = new TCanvas();
-  graph_rt->Draw("AP");
+  TLegend* l2=new TLegend(0.2,0.3,0.2,0.3);
+  l2->SetHeader("SiPM","C");
+  l2->AddEntry(graph_rt,"SiPM right");
+  l2->AddEntry(graph_lt,"SiPM left");
+  l2->AddEntry(fit_ampr,"SiPM right fit w/o offset");
+  l2->AddEntry(fit_ampl,"SiPM left fit w/o offset");
+  
   graph_rt->GetXaxis()->SetLimits(-20,20);
-  // graph_rt->GetYaxis()->SetLimits(0.12,0.24);
+  graph_rt->GetYaxis()->SetRangeUser(-0.05,0.35);
+  graph_rt->Draw("AP");
+  fit_ampr->Draw("same");
+  //graphnorm_rt->Draw("SAMEP");
+  graphnorm_rt->Fit("fit_ampr","","same");
+ 
   graph_lt->Draw("SAMEP");
+  fit_ampl->Draw("same");
+  
+  // graphnorm_lt->Draw("SAMEP");
+  graphnorm_lt->Fit("fit_ampl","","same");
+ 
 
-  l1->Draw();
-   
+  l2->Draw();
+
+  newcanv->SaveAs("FinalPlots/AmpSpatialUnif.eps");
   }

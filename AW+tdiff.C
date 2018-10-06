@@ -1,3 +1,35 @@
+float GetHodoPosition( Int_t nFibres[2], Float_t var[2] ) {
+
+  int nFibresMax = 10;
+
+  bool showering0 = nFibres[0]>=nFibresMax;
+  bool showering1 = nFibres[1]>=nFibresMax;
+
+  bool bad0 = nFibres[0]==0 || var[0]<-900.;
+  bool bad1 = nFibres[1]==0 || var[1]<-900.;
+
+  float pos = -999.;
+
+  if( showering0 || showering1 ) pos = -999.;  // showering (at least one plane)
+
+  else if( bad0 && bad1 ) pos = -999.;  // empty (both planes have 0 fibres)
+
+  else {
+
+    if( bad0 ) pos = var[1];
+
+    else if( bad1 ) pos = var[0];
+
+    else pos = 0.5*(var[0]+var[1]);
+
+  } // else
+
+  return pos;
+
+}
+
+
+
 void AWtdiff(const char * filename){
 
 
@@ -57,7 +89,7 @@ void AWtdiff(const char * filename){
   TF1 *fit_r = new TF1("f_r","landau",0.15,1);
   TF1 *fit_l = new TF1("f_l","landau",0.01,0.5);
 
-  
+  Int_t nFibresOnX[2],nFibresOnX[2];
 
   digiTree->SetBranchAddress("amp_max",&amp_max);
   digiTree->SetBranchAddress("time",&time);
@@ -75,7 +107,8 @@ void AWtdiff(const char * filename){
 
   hodoTree->SetBranchAddress("Y",&Y);
   hodoTree->SetBranchAddress("X",&X);
-
+  hodo->SetBranchAddress( "nFibresOnX", nFibresOnX );
+  hodo->SetBranchAddress( "nFibresOnY", nFibresOnY );
   digiTree->GetEntry(3);
   
   cout << "timetypes   " << timetypes << endl;

@@ -1,6 +1,34 @@
 //to run with ranges [0.125;2]right, [0.13;2]left on 4.1
 //to run with ranges [0.125;2]right, [0.13;2]left on 1.3
+float GetHodoPosition( Int_t* nFibres, Float_t* var ) {
 
+  int nFibresMax = 10;
+
+  bool showering0 = nFibres[0]>=nFibresMax;
+  bool showering1 = nFibres[1]>=nFibresMax;
+
+  bool bad0 = nFibres[0]==0 || var[0]<-900.;
+  bool bad1 = nFibres[1]==0 || var[1]<-900.;
+
+  float pos = -999.;
+
+  if( showering0 || showering1 ) pos = -999.;  // showering (at least one plane)
+
+  else if( bad0 && bad1 ) pos = -999.;  // empty (both planes have 0 fibres)
+
+  else {
+
+    if( bad0 ) pos = var[1];
+
+    else if( bad1 ) pos = var[0];
+
+    else pos = 0.5*(var[0]+var[1]);
+
+  } // else
+
+  return pos;
+
+}
 
 
 void AmpSpatUnif(const char * filename){
@@ -42,7 +70,7 @@ void AmpSpatUnif(const char * filename){
   Double_t yoff_r[nbiny],yoff_l[nbiny];
   Double_t xt[nbinx],yt[nbinx],rmsyt[nbinx];
   Double_t RMS[3][nbinx];
-
+  Int_t nFibresOnX[2], nFibresOnY[2];
 
   TH1F *hr_amp =new TH1F("hr_amp","histos_ampr",nbinx,0.0,1);
   TH1F *hl_amp =new TH1F("hl_amp","histos_ampl",nbinx,0.0,1);
@@ -68,7 +96,9 @@ void AmpSpatUnif(const char * filename){
      
   hodoTree->SetBranchAddress("Y",&Y);
   hodoTree->SetBranchAddress("X",&X);
-  
+  hodoTree->SetBranchAddress( "nFibresOnX", nFibresOnX );
+  hodoTree->SetBranchAddress( "nFibresOnY", nFibresOnY );
+
   digiTree->GetEntry(3);
   LEDi=LED300;
   

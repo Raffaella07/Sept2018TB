@@ -130,11 +130,11 @@ void plotWF_time(const char * filename){
   for(k=0;k<digiTree->GetEntries();k++){
     digiTree->GetEntry(k);
     //cout<<"HERE"<<endl;
-    if(time[1+LEDi]-time[0]<50 && time[1+LEDi]-time[0]>0) {Times1[k]=time[1+LEDi]-time[0];}
+    if(time[NINO1+LEDi]-time[0+CFD]<50 && time[NINO1+LEDi]-time[0+CFD]>0) {Times1[k]=time[NINO1+LEDi]-time[0+CFD];}
     else{Times1[k]=Times2[k-1];}
-    if(time[2+LEDi]-time[0]<50 && time[2+LEDi]-time[0]>0) {Times2[k]=time[2+LEDi]-time[0];}
+    if(time[NINO2+LEDi]-time[0+CFD]<50 && time[NINO2+LEDi]-time[0+CFD]>0) {Times2[k]=time[NINO2+LEDi]-time[0+CFD];}
     else{Times2[k]=Times2[k-1];}  
-    if((time[1+LEDi]+time[2+LEDi])/2-time[0]<50 && (time[1+LEDi]+time[2+LEDi])/2-time[0]>-10) {Times3[k]=(time[1+LEDi]+time[2+LEDi])/2-time[0];}    else{Times3[k]=Times3[k-1];}
+    if((time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]<50 && (time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]>-10) {Times3[k]=(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD];}    else{Times3[k]=Times3[k-1];}
     
     
   }
@@ -197,7 +197,7 @@ void plotWF_time(const char * filename){
     digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
        if (amp_max[0]/max>0.08 && amp_max[0]/max < 0.55){
-	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[5]/max) && (amp_max[5]/max) < (3*fit_l->GetParameter(1))) ) 	h2_l->Fill(amp_max[5]/max,time[1+LEDi]-time[0+CFD]);
+	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[5]/max) && (amp_max[5]/max) < (3*fit_l->GetParameter(1))) ) 	h2_l->Fill(amp_max[5]/max,time[NINO1+LEDi]-time[0+CFD]);
 	 
 	 if (((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) ) h2_r->Fill(amp_max[AMP2]/max,time[NINO2+LEDi]-time[0+CFD]);
 	 

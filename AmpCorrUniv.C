@@ -1,6 +1,6 @@
 //To run with ranges [0.125;2]right, [0.13;2]left on 4.1
 //to run with ranges [0.125;2]right, [0.13;2]left on 1.3
-
+//commento
 
 
 void AmpCorrUniv(const char * filename){
@@ -12,7 +12,7 @@ void AmpCorrUniv(const char * filename){
   
 
   Float_t amp_max[225], time[225];
-  int k,j,maxbin_l,maxbin_r,maxbin_t,i;
+  Int_t k,j,maxbin_l,maxbin_r,maxbin_t,i;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
   bool blind=true;

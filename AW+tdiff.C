@@ -1,3 +1,52 @@
+#include "TFile.h"
+#include "TTree.h"
+#include "TH1F.h"
+#include "TF1.h"
+#include "TMath.h"
+#include "TLegend.h"
+#include "TLatex.h"
+#include "TH2F.h"
+#include "TCanvas.h"
+#include "TFile.h"
+#include "TGraphErrors.h"
+#include "TStyle.h"
+#include "TSystem.h"
+#include "TROOT.h"
+#include "stdio.h"
+#include "string.h"
+
+float GetHodoPosition( Int_t* nFibres, Float_t* var ) {
+
+  Int_t nFibresMax = 10;
+
+  bool showering0 = nFibres[0]>=nFibresMax;
+  bool showering1 = nFibres[1]>=nFibresMax;
+
+  bool bad0 = nFibres[0]==0 || var[0]<-900.;
+  bool bad1 = nFibres[1]==0 || var[1]<-900.;
+
+  float pos = -999.;
+
+  if( showering0 || showering1 ) pos = -999.;  // showering (at least one plane)
+
+  else if( bad0 && bad1 ) pos = -999.;  // empty (both planes have 0 fibres)
+
+  else {
+
+    if( bad0 ) pos = var[1];
+
+    else if( bad1 ) pos = var[0];
+
+    else pos = 0.5*(var[0]+var[1]);
+
+  } // else
+
+  return pos;
+
+}
+
+
+
 void AWtdiff(const char * filename){
 
 
@@ -12,7 +61,7 @@ void AWtdiff(const char * filename){
 
   digiTree->GetEntry(3);
   Float_t amp_max[timetypes], time[timetypes],X[2],Y[2];
-  int k,j,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,j,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
   bool blind=true;
@@ -28,7 +77,7 @@ void AWtdiff(const char * filename){
 
   const Int_t  nbinx=150,nbiny=300;
 
-  int i;
+  Int_t i;
   Double_t sigma[50],erry[50],cut[50],errx[50];
   
   txmin=-20;
@@ -57,7 +106,7 @@ void AWtdiff(const char * filename){
   TF1 *fit_r = new TF1("f_r","landau",0.15,1);
   TF1 *fit_l = new TF1("f_l","landau",0.01,0.5);
 
-  
+  Int_t nFibresOnX[2],nFibresOnY[2];
 
   digiTree->SetBranchAddress("amp_max",&amp_max);
   digiTree->SetBranchAddress("time",&time);
@@ -75,7 +124,8 @@ void AWtdiff(const char * filename){
 
   hodoTree->SetBranchAddress("Y",&Y);
   hodoTree->SetBranchAddress("X",&X);
-
+  hodoTree->SetBranchAddress( "nFibresOnX", nFibresOnX );
+  hodoTree->SetBranchAddress( "nFibresOnY", nFibresOnY );
   digiTree->GetEntry(3);
   
   cout << "timetypes   " << timetypes << endl;
@@ -130,7 +180,7 @@ void AWtdiff(const char * filename){
   tymin=mean3-1.2*rms3;
   tymax=mean3+0.8*rms3;
 
-  rymin_l=0;
+  /*rymin_l=0;
   rymax_l=10;
   rymin_r=0;
   rymax_r=10;
@@ -138,7 +188,7 @@ void AWtdiff(const char * filename){
   
   
   tymin=0;
-  tymax= 5;
+  tymax= 5;*/
   
   
   max=4096;
@@ -189,7 +239,7 @@ void AWtdiff(const char * filename){
     digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
 
-    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && X[0]>-11 && Y[0]>-2 && Y[0]<5){
+    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)>-11 && GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5){
       
 	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[5]/max) && (amp_max[5]/max) < (3*fit_l->GetParameter(1))) ) {
 	   	h2_l->Fill(amp_max[AMP1]/max,time[NINO1+LEDi]-time[PTK1+CFD]);
@@ -205,8 +255,8 @@ void AWtdiff(const char * filename){
 	     
 	     
 	     h2_time->Fill(time[NINO1+LEDi]-time[NINO2+LEDi],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]);
-	     h2_t->Fill(X[0],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]);
-	     //	cout << "__________________" << X[0] << endl;
+	     h2_t->Fill(GetHodoPosition(nFibresOnX,X),(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]);
+	     //	cout << "__________________" << GetHodoPosition(nFibresOnX,X) << endl;
 	    
 	      
 	      
@@ -349,7 +399,7 @@ void AWtdiff(const char * filename){
     digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
    
-    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && X[0]>-11 && Y[0]>-2 && Y[0]<5){
+    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)>-11 && GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5){
      if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) ) 	hc_l->Fill(amp_max[AMP1]/max,time[NINO1+LEDi]-time[0+CFD]-hyp_l->Eval(amp_max[AMP1]/max)+hyp_l->GetParameter(0));
       
       if (((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) ) hc_r->Fill(amp_max[AMP2]/max,time[NINO2+LEDi]-time[0+CFD]-hyp_r->Eval(amp_max[AMP2]/max)+hyp_r->GetParameter(0)); 
@@ -357,9 +407,9 @@ void AWtdiff(const char * filename){
       if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) || ((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) )
 	 {
 	   
-	   hc_t->Fill(X[0],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[AMP1]/max)-hyp_l->GetParameter(0))/2);	
+	   hc_t->Fill(GetHodoPosition(nFibresOnX,X),(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[AMP1]/max)-hyp_l->GetParameter(0))/2);	
 	   
-	   //	cout << "__________________" << X[0] << endl;
+	   //	cout << "__________________" << GetHodoPosition(nFibresOnX,X) << endl;
 	 }//chiudo if
     }
    }//chiudo for k
@@ -429,12 +479,12 @@ for(k=0;k<digiTree->GetEntries();k++){
   
   digiTree->GetEntry(k);
   hodoTree->GetEntry(k);
-   if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && X[0]>-11 && Y[0]>-2 && Y[0]<5){
+   if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)>-11 && GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5){
   if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) || ((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) ) 
     
     {
-      //      cout << (time[1+LEDi]+time[2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[6]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[5]/max)-hyp_l->GetParameter(0))/2-fit_tdiff->Eval(X[0])+fit_tdiff->GetParameter(0) << endl;	
-	hc_tdiff->Fill(X[0],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[AMP1]/max)-hyp_l->GetParameter(0))/2-fit_tdiff->Eval(Y[0])+fit_tdiff->GetParameter(0));	
+      //      cout << (time[1+LEDi]+time[2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[6]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[5]/max)-hyp_l->GetParameter(0))/2-fit_tdiff->Eval(GetHodoPosition(nFibresOnX,X))+fit_tdiff->GetParameter(0) << endl;	
+	hc_tdiff->Fill(GetHodoPosition(nFibresOnX,X),(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[AMP1]/max)-hyp_l->GetParameter(0))/2-fit_tdiff->Eval(GetHodoPosition(nFibresOnY,Y))+fit_tdiff->GetParameter(0));	
        }
    }
  }//chiudo for k
@@ -562,8 +612,8 @@ cout << "########################### "<< gaus_ct->GetParameter(2)/gaus_ct->GetPa
 Int_t npt=13;
 bool control=false;
 
-TH1D* histotemp_t[(int)nbinx/npt];
-TF1* fit[(int)nbinx/npt];
+TH1D* histotemp_t[(Int_t)nbinx/npt];
+TF1* fit[(Int_t)nbinx/npt];
 gSystem->Exec("mkdir slicetdiff");
 gSystem->Exec("cd slicetdiff");
 gROOT->SetBatch(kTRUE);

@@ -13,7 +13,7 @@ void TResAmp(const char * filename){
 
 
   Float_t amp_max[54], time[54];
-  int k,j,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,j,maxbin_l,maxbin_r,maxbin_t;
   Double_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
   bool blind=true;
@@ -27,7 +27,7 @@ void TResAmp(const char * filename){
 
   const Int_t  nbinx=200,nbiny=250;
 
- int i;
+ Int_t i;
  Double_t sigma[50],erry[50],cut[50],errx[50];
  Int_t nentries=digiTree->GetEntries();
  Float_t Times1[nentries],Times2[nentries],Times3[nentries];
@@ -349,11 +349,11 @@ void TResAmp(const char * filename){
      
    }//chiudo for k
 
-   int npoints = 10;
+   Int_t npoInt_ts = 10;
    rxmin+=0.1;
    rxmax-=0.2;
-   for (i=1;i<nbinx/npoints+1;i++){
-     cut[i] =rxmin+(Double_t)(rxmax-rxmin)*(i*npoints)/nbinx;  
+   for (i=1;i<nbinx/npoInt_ts+1;i++){
+     cut[i] =rxmin+(Double_t)(rxmax-rxmin)*(i*npoInt_ts)/nbinx;  
    }
    
    TCanvas *proiettati;
@@ -368,7 +368,7 @@ void TResAmp(const char * filename){
      gSystem->Exec("mkdir HistoTResAmp");
    }
    
-   for (i=1;i<nbinx/npoints+1;i++){
+   for (i=1;i<nbinx/npoInt_ts+1;i++){
      fit = new TF1("fit","gaus",XMinPlot,XMaxPlot);
      fit->SetParameter(0,200);
      fit->SetParameter(1,0);
@@ -410,7 +410,7 @@ void TResAmp(const char * filename){
      
      sigma[i]=sqrt((fit->GetParameter(2))*(fit->GetParameter(2))-0.015*0.015);
      erry[i]=fit->GetParError(2);
-     errx[i]= (rxmax-rxmin)*npoints/(2*nbinx);
+     errx[i]= (rxmax-rxmin)*npoInt_ts/(2*nbinx);
      
 
      delete histotemp_t;
@@ -421,10 +421,10 @@ void TResAmp(const char * filename){
    
 				     
    TCanvas* c_TresAmp = new TCanvas("c_TresAmp","c_rest_plot",600,550);
-   TGraphErrors* TResAmp = new TGraphErrors(nbinx/npoints-3,cut,sigma,errx,erry);
+   TGraphErrors* TResAmp = new TGraphErrors(nbinx/npoInt_ts-3,cut,sigma,errx,erry);
    TF1* fitramp = new TF1("fitramp","[0]+[1]/sqrt(x)",rxmin,rxmax);
-   TLine* intercept = new TLine(0.82,0.03,1.8,0.03);
-   intercept->SetLineColor(kBlue);
+   TLine* Int_tercept = new TLine(0.82,0.03,1.8,0.03);
+   Int_tercept->SetLineColor(kBlue);
    gStyle->SetOptFit(1111);
 
    fitramp->SetParameter(0,0.0);
@@ -440,7 +440,7 @@ void TResAmp(const char * filename){
    TResAmp->GetXaxis()->SetLimits(0.82,1.8);
    TResAmp ->Draw("AP");
    fitramp->DrawF1(0,3,"same");
-   intercept->Draw("same");
+   Int_tercept->Draw("same");
 
       
 }

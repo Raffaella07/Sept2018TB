@@ -11,7 +11,7 @@ void  plotWF_rest(const char * filename){
 
  
   Float_t amp_max[54], time[54];
-  int k,j,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,j,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
   bool blind=true;
@@ -386,13 +386,13 @@ void  plotWF_rest(const char * filename){
    // histo_ctdiff->Draw("same");
    // histo_ct->Draw();
    //l2->Draw();
-   const int n=22;
+   const Int_t n=22;
   
 
 }
 
 /*void plotWF_rest(const char* filename){
-  int n= 11,i;
+  Int_t n= 11,i;
   Float_t c;
   Float_t sigma[11],err[11],cut[11];
   Float_t s, e;

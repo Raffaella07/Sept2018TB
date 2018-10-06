@@ -1,6 +1,6 @@
 //pioooo
 //pippo
-void plotWF(const char * filename,int i){
+void plotWF(const char * filename,Int_t i){
   
   TFile *  file= new TFile(filename);
   TTree * WFTree = (TTree*)file->Get("wf");
@@ -8,8 +8,8 @@ void plotWF(const char * filename,int i){
  
   Float_t tot_WF[14336],wf_time[14336],digi_time[28];
   Float_t ch[14][1024], time[1024],startime[2];
-  int wf_sample,step[14336];
-  int j,k,LED300;
+  Int_t wf_sample,step[14336];
+  Int_t j,k,LED300;
 
   
   WFTree->SetBranchAddress("WF_time",&wf_time);
@@ -18,7 +18,7 @@ void plotWF(const char * filename,int i){
   WFTree->SetBranchAddress("WF_samples",&wf_sample);
   digiTree->SetBranchAddress("time",&digi_time);
   digiTree->SetBranchAddress("LED",&LED300);
-  int p;
+  Int_t p;
   p=i;
   
   for(k=0;k<WFTree->GetEntries();k++){
@@ -30,7 +30,7 @@ void plotWF(const char * filename,int i){
     
     for(j=0;j<wf_sample;j++){
       step[j]= j;
-      ch[(int)j/1024][j%1024]=tot_WF[j];
+      ch[(Int_t)j/1024][j%1024]=tot_WF[j];
       if(j<1024) time[j]= wf_time[j];
     }//chiudo for j
 

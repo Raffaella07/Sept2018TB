@@ -11,7 +11,7 @@ void plotWF_cut(const char * filename){
   TTree * digiTree = (TTree*)file->Get("digi");
 
   Float_t amp_max[225];
-  int k;
+  Int_t k;
   Double_t max=0;
   
   TH1F *hr_amp =new TH1F("hr_amp","histos_ampr",500,0.0,1);

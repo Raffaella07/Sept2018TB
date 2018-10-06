@@ -13,7 +13,7 @@ void plotWF_tdiff(const char * filename, Double_t *sig, Double_t * ssig){
 
 
   Float_t amp_max[54], time[54];
-  int k,j,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,j,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
   bool blind=true;
@@ -27,7 +27,7 @@ void plotWF_tdiff(const char * filename, Double_t *sig, Double_t * ssig){
 
   const Int_t  nbinx=200,nbiny=150;
 
-  int i;
+  Int_t i;
   Double_t sigma[50],erry[50],cut[50],errx[50];
   
   txmin=-0.3;
@@ -417,8 +417,8 @@ rymax_rc=rymax_r-hyp_r->Eval(fit_r->GetParameter(1)+0.5*fit_r->GetParameter(2))+
 
    TCanvas* tdiff = new TCanvas("tdiff","plot_tdiff",600,550);
    TLegend* l2=new TLegend(0.1,0.7,0.48,0.9);
-   TH1D* histotemp_t[(int)nbinx/13];
-   TF1* fit[(int)nbinx/13];
+   TH1D* histotemp_t[(Int_t)nbinx/13];
+   TF1* fit[(Int_t)nbinx/13];
    l2->SetHeader("time stamps");
    l2->AddEntry(histo_ct,"t_ave-t_MCP");
    l2->AddEntry(histo_ctdiff,"t_ave-t_MCP(tdiff corr)");
@@ -499,7 +499,7 @@ rymax_rc=rymax_r-hyp_r->Eval(fit_r->GetParameter(1)+0.5*fit_r->GetParameter(2))+
 void ResConf(){
   string filename,temp;
   Double_t conf[5];
-  int i,n;
+  Int_t i,n;
   Double_t sigma[5], ssigma[5];
 
   conf[0]=1.1;

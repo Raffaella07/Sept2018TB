@@ -1,22 +1,5 @@
 //to run with ranges [0.125;2]right, [0.13;2]left on 4.1
 //to run with ranges [0.125;2]right, [0.13;2]left on 1.3
-#include "TFile.h"
-#include "TTree.h"
-#include "TH1F.h"
-#include "TF1.h"
-#include "TMath.h"
-#include "TLegend.h"
-#include "TLatex.h"
-#include "TH2F.h"
-#include "TCanvas.h"
-#include "TFile.h"
-#include "TGraphErrors.h"
-#include "TStyle.h"
-#include "TSystem.h"
-#include "TROOT.h"
-#include "stdio.h"
-#include "string.h"
-
 float GetHodoPosition( Int_t nFibres[2], Float_t var[2] ) {
 
   Int_t nFibresMax = 10;
@@ -101,8 +84,6 @@ void plotWF_time(const char * filename){
   TF1 *fit_l = new TF1("f_l","landau",0.01,0.5);
 
 
-  Int_t nFibresOnX[2],nFibresOnY[2];
-
   digiTree->SetBranchAddress("amp_max",&amp_max);
   digiTree->SetBranchAddress("time",&time);
   digiTree->SetBranchAddress("LED",&LED300);
@@ -130,11 +111,11 @@ void plotWF_time(const char * filename){
   for(k=0;k<digiTree->GetEntries();k++){
     digiTree->GetEntry(k);
     //cout<<"HERE"<<endl;
-    if(time[NINO1+LEDi]-time[0+CFD]<50 && time[NINO1+LEDi]-time[0+CFD]>0) {Times1[k]=time[NINO1+LEDi]-time[0+CFD];}
+    if(time[1+LEDi]-time[0]<50 && time[1+LEDi]-time[0]>0) {Times1[k]=time[1+LEDi]-time[0];}
     else{Times1[k]=Times2[k-1];}
-    if(time[NINO2+LEDi]-time[0+CFD]<50 && time[NINO2+LEDi]-time[0+CFD]>0) {Times2[k]=time[NINO2+LEDi]-time[0+CFD];}
+    if(time[2+LEDi]-time[0]<50 && time[2+LEDi]-time[0]>0) {Times2[k]=time[2+LEDi]-time[0];}
     else{Times2[k]=Times2[k-1];}  
-    if((time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]<50 && (time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]>-10) {Times3[k]=(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD];}    else{Times3[k]=Times3[k-1];}
+    if((time[1+LEDi]+time[2+LEDi])/2-time[0]<50 && (time[1+LEDi]+time[2+LEDi])/2-time[0]>-10) {Times3[k]=(time[1+LEDi]+time[2+LEDi])/2-time[0];}    else{Times3[k]=Times3[k-1];}
     
     
   }
@@ -158,7 +139,7 @@ void plotWF_time(const char * filename){
   tymin=mean3-0.5*rms3;
   tymax=mean3+0.5*rms3;
 
-  /*rymin_l=0;
+  rymin_l=0;
   rymax_l=10;
   rymin_r=0;
   rymax_r=10;
@@ -166,7 +147,7 @@ void plotWF_time(const char * filename){
   
   
   tymin=-5;
-  tymax= 5;*/
+  tymax= 5;
   
   max=4096;
 
@@ -197,7 +178,7 @@ void plotWF_time(const char * filename){
     digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
        if (amp_max[0]/max>0.08 && amp_max[0]/max < 0.55){
-	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[5]/max) && (amp_max[5]/max) < (3*fit_l->GetParameter(1))) ) 	h2_l->Fill(amp_max[5]/max,time[NINO1+LEDi]-time[0+CFD]);
+	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[5]/max) && (amp_max[5]/max) < (3*fit_l->GetParameter(1))) ) 	h2_l->Fill(amp_max[5]/max,time[1+LEDi]-time[0+CFD]);
 	 
 	 if (((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) ) h2_r->Fill(amp_max[AMP2]/max,time[NINO2+LEDi]-time[0+CFD]);
 	 
@@ -503,7 +484,10 @@ void plotWF_time(const char * filename){
   fitgr2_l->SetLineColor(kRed);
   fitgr2_r->SetLineColor(kBlue);
   fitgr2_t->SetLineColor(kBlack);
-     
+  fitgrx_l->SetLineColor(kRed);
+  fitgrx_r->SetLineColor(kBlue);
+  fitgrx_t->SetLineColor(kBlack);
+   
    
 
   l1->AddEntry(fitgr2_l,"t_{left}-t_{MCP}","L");
@@ -546,12 +530,6 @@ void plotWF_time(const char * filename){
   TF1* fitgrx_l = new TF1("fitgrx_l","[0]+x*[1]",txmin,txmax);
   TF1* fitgrx_r = new TF1("fitgrx_r","[0]+x*[1]",txmin,txmax);
   TF1* fitgrx_t = new TF1("fitgrx_t","[0]+x*[1]",txmin,txmax);
-
-  fitgrx_l->SetLineColor(kRed);
-  fitgrx_r->SetLineColor(kBlue);
-  fitgrx_t->SetLineColor(kBlack);
-
-
 
   l2->AddEntry(fitgrx_l,"t_{left}-t_{MCP}","P");
   l2->AddEntry(fitgrx_r,"t_{right}-t_{MCP}","P");

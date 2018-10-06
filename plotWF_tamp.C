@@ -13,7 +13,7 @@ void plotWF_tamp(const char * filename){
 
 
   Float_t amp_max[54], time[54];
-  int k,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax;
   bool debug=false;
   Int_t nentries=digiTree->GetEntries();

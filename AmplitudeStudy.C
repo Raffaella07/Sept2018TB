@@ -22,7 +22,7 @@ void AmplitudeStudy(const char * filename){
 
 
   Float_t amp_max[54], time[54];
-  int k,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,maxbin_l,maxbin_r,maxbin_t;
   Float_t max;
   const Int_t  nbinx=170,nbiny=240;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;

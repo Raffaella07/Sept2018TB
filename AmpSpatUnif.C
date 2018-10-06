@@ -1,8 +1,23 @@
-//to run with ranges [0.125;2]right, [0.13;2]left on 4.1
-//to run with ranges [0.125;2]right, [0.13;2]left on 1.3
+#include "TFile.h"
+#include "TTree.h"
+#include "TH1F.h"
+#include "TF1.h"
+#include "TMath.h"
+#include "TLegend.h"
+#include "TLatex.h"
+#include "TH2F.h"
+#include "TCanvas.h"
+#include "TFile.h"
+#include "TGraphErrors.h"
+#include "TStyle.h"
+#include "TSystem.h"
+#include "TROOT.h"
+#include "stdio.h"
+#include "string.h"
+
 float GetHodoPosition( Int_t* nFibres, Float_t* var ) {
 
-  int nFibresMax = 10;
+  Int_t nFibresMax = 10;
 
   bool showering0 = nFibres[0]>=nFibresMax;
   bool showering1 = nFibres[1]>=nFibresMax;
@@ -46,7 +61,7 @@ void AmpSpatUnif(const char * filename){
   digiTree->GetEntry(3);
   Float_t amp_max[timetypes], time[timetypes],X[2],Y[2];
  
-  int k,j,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,j,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
   bool blind=true;
@@ -140,7 +155,7 @@ void AmpSpatUnif(const char * filename){
   tymin=mean3-1.1*rms3;
   tymax=mean3+0.8*rms3;
   
-  rymin_l=0;
+  /*rymin_l=0;
   rymax_l=10;
   rymin_r=0;
   rymax_r=10;
@@ -148,7 +163,7 @@ void AmpSpatUnif(const char * filename){
   
   
   tymin=0;
-  tymax= 5;
+  tymax= 5;*/
 
 
    max=4096;
@@ -183,7 +198,7 @@ void AmpSpatUnif(const char * filename){
 
     digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
-    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && X[0]>-11 && Y[0]>-2 && Y[0]<5){
+    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)>-11 && GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5){
    
 	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) ){ 	h2_l->Fill(amp_max[AMP1]/max,time[NINO1+LEDi]-time[0+CFD]);
 	 }
@@ -193,8 +208,8 @@ void AmpSpatUnif(const char * filename){
 	   {
 	     
 	     
-	     h2_t->Fill(X[0],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]);
-	     //	cout << "__________________" << X[0] << endl;
+	     h2_t->Fill(GetHodoPosition(nFibresOnX,X),(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]);
+	     //	cout << "__________________" << GetHodoPosition(nFibresOnX,X) << endl;
 	   }//chiudo if
        }
     
@@ -311,15 +326,15 @@ void AmpSpatUnif(const char * filename){
     digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
 
-     if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && X[0]>-11 && Y[0]>-2 && Y[0]<5){
+     if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)>-11 && GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5){
     
 	 if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) )
    
      {
-       hc_l->Fill(X[0], amp_max[AMP1]/max);
+       hc_l->Fill(GetHodoPosition(nFibresOnX,X), amp_max[AMP1]/max);
      }
      if ((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1))) ){ 
-       hc_r->Fill(X[0], amp_max[AMP2]/max);
+       hc_r->Fill(GetHodoPosition(nFibresOnX,X), amp_max[AMP2]/max);
      }
      }
      }//chiudo for k
@@ -336,7 +351,7 @@ void AmpSpatUnif(const char * filename){
    TH1D* histotemp_l;
    TH1D* histotemp_r;
    
-   int newbin=nbinx;
+   Int_t newbin=nbinx;
 
    for(k=0;k<newbin;k++){
      

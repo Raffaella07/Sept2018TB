@@ -11,7 +11,7 @@ void plotWF_cut(const char * filename, TH1D* amp_l, TH1D* amp_r,Double_t* Mipl,D
   TTree * digiTree = (TTree*)file->Get("digi");
 
   Float_t amp_max[54];
-  int k;
+  Int_t k;
   Double_t max=4096;
   
   TH1D *hr_amp =new TH1D("hr_amp","histos_ampr",500,0.0,1);
@@ -92,7 +92,7 @@ void plotWF_cut(const char * filename, TH1D* amp_l, TH1D* amp_r,Double_t* Mipl,D
 }
 
 void Darkbkg(){
-  int ncurrents=4,i;
+  Int_t ncurrents=4,i;
   Double_t DCR[ncurrents],erry_l[ncurrents],erry_r[ncurrents];
   Double_t Mipl[2][ncurrents], Mipr[2][ncurrents],sMipl[2][ncurrents],sMipr[2][ncurrents];
   TCanvas* super[2][ncurrents];
@@ -119,34 +119,34 @@ void Darkbkg(){
   string filename = "Pd/ConfT100-B72-1.2.root";
   cout << "hereee" << endl;
    for(i=0;i<ncurrents;i++){
-     amp_ldcr[i] =new TH1D(((string)"amp_L_"+to_string((int)DCR[i])+(string)"#muA").c_str(),((string)"amp_L"+to_string((int)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
-     amp_rdcr[i] =new TH1D(((string)"amp_R_"+to_string((int)DCR[i])+(string)"#muA").c_str(),((string)"amp_R_"+to_string((int)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
-     amp_l[i] =new TH1D(((string)"amp_L_"+to_string((int)DCR[i])+(string)"#muA").c_str(),((string)"amp_L_"+to_string((int)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
-     amp_r[i] =new TH1D(((string)"amp_R_"+to_string((int)DCR[i])+(string)"#muA").c_str(),((string)"amp_R_"+to_string((int)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
-     bgk_l[i] =new TH1D(((string)"bgk_L_"+to_string((int)DCR[i])+(string)"#muA").c_str(),((string)"bgk_L_"+to_string((int)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
-     bgk_r[i] =new TH1D(((string)"bgk_R_"+to_string((int)DCR[i])+(string)"#muA").c_str(),((string)"bgk_R_"+to_string((int)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
+     amp_ldcr[i] =new TH1D(((string)"amp_L_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),((string)"amp_L"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
+     amp_rdcr[i] =new TH1D(((string)"amp_R_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),((string)"amp_R_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
+     amp_l[i] =new TH1D(((string)"amp_L_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),((string)"amp_L_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
+     amp_r[i] =new TH1D(((string)"amp_R_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),((string)"amp_R_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
+     bgk_l[i] =new TH1D(((string)"bgk_L_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),((string)"bgk_L_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
+     bgk_r[i] =new TH1D(((string)"bgk_R_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),((string)"bgk_R_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),500,0.0,1);
 
-     fitl= new TF1(((string)"fitl"+to_string((int)DCR[i])+(string)"#muA").c_str(),"landau",0.03,1);
-     fitr= new TF1(((string)"fitr"+to_string((int)DCR[i])+(string)"#muA").c_str(),"landau",0.05,1);
-     fitl_dcr[i]= new TF1(((string)"fitl_dcr"+to_string((int)DCR[i])+(string)"#muA").c_str(),"landau",0.05,1);
-     fitr_dcr[i]= new TF1(((string)"fitr_dcr"+to_string((int)DCR[i])+(string)"#muA").c_str(),"landau",0.05,1);
+     fitl= new TF1(((string)"fitl"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),"landau",0.03,1);
+     fitr= new TF1(((string)"fitr"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),"landau",0.05,1);
+     fitl_dcr[i]= new TF1(((string)"fitl_dcr"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),"landau",0.05,1);
+     fitr_dcr[i]= new TF1(((string)"fitr_dcr"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),"landau",0.05,1);
 
     
      gROOT->SetBatch(kTRUE);
      
-     super[0][i] =new TCanvas(((string)"superL"+to_string((int)DCR[i])).c_str(),((string)"Plot super"+to_string((int)DCR[i])).c_str(),800,1200);
+     super[0][i] =new TCanvas(((string)"superL"+to_string((Int_t)DCR[i])).c_str(),((string)"Plot super"+to_string((Int_t)DCR[i])).c_str(),800,1200);
     
-     wf[0][i] =new TPad(((string)"superwf"+to_string((int)DCR[i])).c_str(),((string)"Plot super"+to_string((int)DCR[i])).c_str(),0.0,0.2,1,1);
-     bkg[0][i] =new TPad(((string)"superb"+to_string((int)DCR[i])).c_str(),((string)"Plot super"+to_string((int)DCR[i])).c_str(),0.0,0.0,1,0.2);
-     wf[1][i] =new TPad(((string)"superwf"+to_string((int)DCR[i])).c_str(),((string)"Plot super"+to_string((int)DCR[i])).c_str(),0.0,0.2,1,1);
-     bkg[1][i] =new TPad(((string)"superb"+to_string((int)DCR[i])).c_str(),((string)"Plot super"+to_string((int)DCR[i])).c_str(),0.0,0.0,1,0.2);
+     wf[0][i] =new TPad(((string)"superwf"+to_string((Int_t)DCR[i])).c_str(),((string)"Plot super"+to_string((Int_t)DCR[i])).c_str(),0.0,0.2,1,1);
+     bkg[0][i] =new TPad(((string)"superb"+to_string((Int_t)DCR[i])).c_str(),((string)"Plot super"+to_string((Int_t)DCR[i])).c_str(),0.0,0.0,1,0.2);
+     wf[1][i] =new TPad(((string)"superwf"+to_string((Int_t)DCR[i])).c_str(),((string)"Plot super"+to_string((Int_t)DCR[i])).c_str(),0.0,0.2,1,1);
+     bkg[1][i] =new TPad(((string)"superb"+to_string((Int_t)DCR[i])).c_str(),((string)"Plot super"+to_string((Int_t)DCR[i])).c_str(),0.0,0.0,1,0.2);
      wf[0][i]->Draw();
      bkg[0][i]->Draw();
     
 
      plotWF_cut(filename.c_str(),amp_l[i],amp_r[i], &Mipl[0][i],&sMipl[0][i],&Mipr[0][i],&sMipr[0][i]);
 
-     filename = "DCR/ConfT500-B72-1.2DCR"+to_string((int)DCR[i])+".root";
+     filename = "DCR/ConfT500-B72-1.2DCR"+to_string((Int_t)DCR[i])+".root";
      
      plotWF_cut(filename.c_str(),amp_ldcr[i],amp_rdcr[i],&Mipl[1][i],&sMipl[1][i],&Mipr[1][i],&sMipr[1][i]);
      bgk_l[i]->Add(amp_ldcr[i],amp_l[i],1,-1);
@@ -154,10 +154,10 @@ void Darkbkg(){
     
     
 
-     amp_l[i]->Fit(((string)"fitl"+to_string((int)DCR[i])+(string)"#muA").c_str(),"0R");
-     amp_r[i]->Fit(((string)"fitr"+to_string((int)DCR[i])+(string)"#muA").c_str(),"0R");
-     amp_ldcr[i]->Fit(((string)"fitl_dcr"+to_string((int)DCR[i])+(string)"#muA").c_str(),"0R");
-     amp_rdcr[i]->Fit(((string)"fitr_dcr"+to_string((int)DCR[i])+(string)"#muA").c_str(),"0R");
+     amp_l[i]->Fit(((string)"fitl"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),"0R");
+     amp_r[i]->Fit(((string)"fitr"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),"0R");
+     amp_ldcr[i]->Fit(((string)"fitl_dcr"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),"0R");
+     amp_rdcr[i]->Fit(((string)"fitr_dcr"+to_string((Int_t)DCR[i])+(string)"#muA").c_str(),"0R");
 
      wf[0][i]->cd()->SetLogy();
      
@@ -169,7 +169,7 @@ void Darkbkg(){
      gStyle->SetOptStat(0);
      TLegend* l1 = new TLegend();
      l1->AddEntry(amp_ldcr[i],"ampL_dcr","l");
-     amp_ldcr[i]->SetTitle(((string)"amp_L_"+to_string((int)DCR[i])+(string)"#muA").c_str());
+     amp_ldcr[i]->SetTitle(((string)"amp_L_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str());
     
      
      amp_l[i]->SetLineColor(kRed);
@@ -202,8 +202,8 @@ void Darkbkg(){
      bgk_l[i]->GetXaxis()->SetTitle("amp_max(mV)");
      bgk_l[i]->Draw();
 
-     super[0][i]->SaveAs(((string)"controlplots/superL"+to_string((int)DCR[i])+(string)".eps").c_str());
-     super[1][i] =new TCanvas(((string)"superR"+to_string((int)DCR[i])).c_str(),((string)"Plot super"+to_string((int)DCR[i])).c_str(),800,1200);
+     super[0][i]->SaveAs(((string)"controlplots/superL"+to_string((Int_t)DCR[i])+(string)".eps").c_str());
+     super[1][i] =new TCanvas(((string)"superR"+to_string((Int_t)DCR[i])).c_str(),((string)"Plot super"+to_string((Int_t)DCR[i])).c_str(),800,1200);
      wf[1][i]->Draw();
      bkg[1][i]->Draw(); 
      wf[1][i]->cd()->SetLogy();
@@ -216,7 +216,7 @@ void Darkbkg(){
      gStyle->SetOptStat(0);
      TLegend* l6 = new TLegend();
      l6->AddEntry(amp_ldcr[i],"ampR_dcr","l");
-     amp_rdcr[i]->SetTitle(((string)"amp_R_"+to_string((int)DCR[i])+(string)"#muA").c_str());
+     amp_rdcr[i]->SetTitle(((string)"amp_R_"+to_string((Int_t)DCR[i])+(string)"#muA").c_str());
     
      
      amp_r[i]->SetLineColor(kRed);
@@ -243,7 +243,7 @@ void Darkbkg(){
      bgk_r[i]->GetXaxis()->SetTitle("amp_max(mV)");
      bgk_r[i]->Draw();
 
-     super[1][i]->SaveAs(((string)"controlplots/superR"+to_string((int)DCR[i])+(string)".eps").c_str()); 
+     super[1][i]->SaveAs(((string)"controlplots/superR"+to_string((Int_t)DCR[i])+(string)".eps").c_str()); 
      gROOT->SetBatch(kFALSE);
 
      

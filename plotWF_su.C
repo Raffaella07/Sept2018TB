@@ -13,7 +13,7 @@ void plotWF_su(const char * filename){
 
   
   Float_t amp_max[54], time[54];
-  int k,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin,rymax;
   bool debug=false;
   Double_t max=0,tmax=0;

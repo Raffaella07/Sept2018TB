@@ -7,7 +7,7 @@ void plotWF_fit(const char * filename){
   TTree * digiTree = (TTree*)file->Get("digi");
 
   Float_t amp_max[54];
-  int k;
+  Int_t k;
   Double_t max=0;
   
  

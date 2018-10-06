@@ -8,7 +8,7 @@ void plotWF_tdiff(const char * filename){
 
 
   Float_t amp_max[54], time[54];
-  int k,j,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,j,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
   bool blind=true;
@@ -22,7 +22,7 @@ void plotWF_tdiff(const char * filename){
 
   const Int_t  nbinx=200,nbiny=300;
 
-  int i;
+  Int_t i;
   Double_t sigma[50],erry[50],cut[50],errx[50];
   
   txmin=-0.5;
@@ -419,8 +419,8 @@ void plotWF_tdiff(const char * filename){
    Int_t npt=13;
    bool control=false;
 
-   TH1D* histotemp_t[(int)nbinx/npt];
-   TF1* fit[(int)nbinx/npt];
+   TH1D* histotemp_t[(Int_t)nbinx/npt];
+   TF1* fit[(Int_t)nbinx/npt];
    
    TCanvas* rest_gaussine = new TCanvas("rest_gaussine","rest_plotgaus",1800,1100);
    if(control)rest_gaussine->Divide(nbinx/(npt*4)+1,4);

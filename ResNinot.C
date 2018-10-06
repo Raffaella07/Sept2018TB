@@ -2,7 +2,7 @@
 //to run with ranges [0.125;2]right, [0.13;2]left on 1.3
 
 
-void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int index,TCanvas* tdiff,Double_t* bias){
+void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,Int_t index,TCanvas* tdiff,Double_t* bias){
 
 
   TFile*  file= TFile::Open(filename);
@@ -11,7 +11,7 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
 
 
   Float_t amp_max[54], time[54];
-  int k,j,maxbin_l,maxbin_r,maxbin_t;
+  Int_t k,j,maxbin_l,maxbin_r,maxbin_t;
   Float_t rxmin,rxmax,rymin_l,rymax_l,rymin_r,rymax_r,tymin,tymax,txmin,txmax,tymin_c,tymax_c,rymin_lc,rymax_lc,rymin_rc,rymax_rc;
   bool debug=false;
   bool blind=true;
@@ -25,7 +25,7 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
 
   const Int_t  nbinx=200,nbiny=130;
 
-  int i;
+  Int_t i;
   //  Double_t sigma[50],erry[50],cut[50],errx[50];
   
   txmin=-0.3;
@@ -421,7 +421,7 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
    *ssigma= gaus_ctdiff[index]->GetParError(2); 
    // histo_ctdiff->SetLineColor(kGreen);
    // histo_ct->Draw();
-   histo_ctdiff[index]->SetTitle(((string)("hc_tdiff  T"+to_string((int)bias[index]))).c_str());
+   histo_ctdiff[index]->SetTitle(((string)("hc_tdiff  T"+to_string((Int_t)bias[index]))).c_str());
    histo_ctdiff[index]->SetAxisRange(histo_ctdiff[index]->GetMean()-3*histo_ctdiff[index]->GetRMS(),histo_ctdiff[index]->GetMean()+3*histo_ctdiff[index]->GetRMS());
    histo_ctdiff[index]->Draw();
    tdiff->SaveAs("file:///home/raffaella/Documents/CERN/TestBeam/TestBeamProg/ResNINOthr.png");
@@ -431,8 +431,8 @@ void plotWF_tdiff(const char * filename,Double_t* sigma,Double_t* ssigma,int ind
 
 
 void ResNinot(){
-  int i;
-  const  int nbias= 3;
+  Int_t i;
+  const  Int_t nbias= 3;
   string filename;
   string n;
 
@@ -457,7 +457,7 @@ void ResNinot(){
    gStyle->SetOptFit(1111);
   
     //    convert << bias[i];
-    n=to_string((int)bias[i]);
+    n=to_string((Int_t)bias[i]);
     filename = "DCR/ConfT"+n+"-B72-1.2DCR500.root";
     plotWF_tdiff(filename.c_str(),&sigma[i],&ssigma[i],i,tdiff,bias);
 

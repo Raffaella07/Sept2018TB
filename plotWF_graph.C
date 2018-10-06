@@ -8,7 +8,7 @@ void plotWF_graph(const char * filename){
   TTree * digiTree = (TTree*)file->Get("digi");
 
   Float_t amp_max[28];
-  int k;
+  Int_t k;
   Double_t max=0;
   
   TCanvas* wf_c =new TCanvas("wf","Plot wf",1200,550);

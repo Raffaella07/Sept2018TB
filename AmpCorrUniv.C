@@ -1,6 +1,6 @@
 //To run with ranges [0.125;2]right, [0.13;2]left on 4.1
 //to run with ranges [0.125;2]right, [0.13;2]left on 1.3
-
+//commento
 
 
 void AmpCorrUniv(const char * filename){

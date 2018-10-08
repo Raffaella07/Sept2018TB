@@ -142,19 +142,19 @@ void AWtdiff(const char * filename){
   for(k=0;k<digiTree->GetEntries();k++){
     digiTree->GetEntry(k);
     
-    if(time[1+LEDi]-time[0]<15 && time[1+LEDi]-time[0]>0) {
+    if(time[NINO1+LEDi]-time[0+CFD]<15 && time[NINO1+LEDi]-time[0+CFD]>0) {
       counter1++;
-      Times1[counter1]=time[1+LEDi]-time[0];
+      Times1[counter1]=time[NINO1+LEDi]-time[0+CFD];
     }
     
-    if(time[2+LEDi]-time[0]<15 && time[2+LEDi]-time[0]>0) {
+    if(time[NINO2+LEDi]-time[0+CFD]<15 && time[NINO2+LEDi]-time[0+CFD]>0) {
       counter2++;
-      Times2[counter2]=time[2+LEDi]-time[0];
+      Times2[counter2]=time[NINO2+LEDi]-time[0+CFD];
     }
     
-    if((time[1+LEDi]+time[2+LEDi])/2-time[0]<15 && (time[1+LEDi]+time[2+LEDi])/2-time[0]>-1) {
+    if((time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]<15 && (time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]>-1) {
       counter3++;
-      Times3[counter3]=(time[1+LEDi]+time[2+LEDi])/2-time[0];
+      Times3[counter3]=(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD];
     }
     
   }

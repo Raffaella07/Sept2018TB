@@ -45,46 +45,116 @@ float GetHodoPosition( Int_t* nFibres, Float_t* var ) {
 
 }
 
-TF1* fitGaus( TH1D* histo, float nSigma, bool addFunc ) {
+TF1* fitGaus( TH1D* histo, float nSigma, bool addFunc, string type ) {
+
+  gStyle->SetOptFit(1111);
 
   float mean_histo = histo->GetMean();
   float rms_histo  = histo->GetRMS();
-
+  
+  TCanvas* iterCanvas = new TCanvas("iterFitCanvas","",1200,800);
+  
   TF1* f1_gaus = new TF1( Form("gaus_%s", histo->GetName()), "gaus", mean_histo-rms_histo, mean_histo+rms_histo );
   f1_gaus->SetLineColor( 46 );
-  
-  histo->Fit( f1_gaus->GetName(), "RQ0" );
+  histo->Draw("HISTO");
+  histo->Fit( f1_gaus->GetName(), "RQ" );
+  f1_gaus->Draw("SAME");
 
+  cout <<"Fit numero "<< "0"<< "#sigma=" <<f1_gaus->GetParameter(2)<<"->"<<sqrt(f1_gaus->GetParameter(2)*f1_gaus->GetParameter(2)-0.018*0.018) <<endl; 
+
+  iterCanvas->SaveAs(("IterfitControl/"+type+"/FitZero.pdf").c_str());
+  
+  delete iterCanvas;
+  
   float xMin_fit = f1_gaus->GetParameter(1) - nSigma*f1_gaus->GetParameter(2);
   float xMax_fit = f1_gaus->GetParameter(1) + nSigma*f1_gaus->GetParameter(2);
-
+  
   f1_gaus->SetRange( xMin_fit, xMax_fit );
-
-
+  
+  
   int n_iter = 5;
-
+  
   for( int i=0; i<n_iter; ++i ) { // iterative fit
-
+    TCanvas* iterCanvas = new TCanvas("iterFitCanvas","",1200,800);
     if( i==n_iter-1 && addFunc )
       histo->Fit( f1_gaus->GetName(), "RQ+" );
     else {
-      histo->Fit( f1_gaus->GetName(), "RQ0" );
+      histo->Draw("HISTO");
+      histo->Fit( f1_gaus->GetName(), "RQ" );
+      f1_gaus->Draw("SAME");
       xMin_fit = f1_gaus->GetParameter(1) - nSigma*f1_gaus->GetParameter(2);
       xMax_fit = f1_gaus->GetParameter(1) + nSigma*f1_gaus->GetParameter(2);
       f1_gaus->SetRange( xMin_fit, xMax_fit );
     }
-
+    
+    iterCanvas->SaveAs(("IterfitControl/"+type+"/Fit"+to_string(i)+type+".pdf").c_str());
+    cout <<"Fit numero "<< i<< "#sigma=" <<f1_gaus->GetParameter(2)<<"->"<<sqrt(f1_gaus->GetParameter(2)*f1_gaus->GetParameter(2)-0.018*0.018) <<endl; 
+    delete iterCanvas;
+    
   } // for iter
-
+  
 
   return f1_gaus;
+  
+}
+
+
+float GetSigmaEff( TH1D* histo, string dir) {
+
+  float percentIntegral = 0.683;
+  float integral = histo->Integral();
+
+  // first fit to find mode:
+  TF1* f1_gaus = fitGaus( histo, 1.5, false, "a");
+
+  float mode = f1_gaus->GetParameter(1);
+  int maxBin = histo->FindBin( mode );
+
+  int nBins = histo->GetNbinsX();
+  float xMin = histo->GetXaxis()->GetXmin();
+  float xMax = histo->GetXaxis()->GetXmax();
+
+  TH1D* newHisto = new TH1D( Form("newHisto_%s", histo->GetName()), "", nBins, xMin, xMax);
+  newHisto->SetBinContent( maxBin, histo->GetBinContent(maxBin) );
+  newHisto->SetBinError( maxBin, histo->GetBinError(maxBin) );
+
+  Int_t iBin = maxBin;
+  Int_t delta_iBin = 1;
+  Int_t sign  = 1;
+
+  float width = histo->GetBinWidth( maxBin );
+  
+  TCanvas* ControlloSigmaEff;
+  int i=0;
+  
+  while( newHisto->Integral() < percentIntegral*integral ) {
+    
+    ControlloSigmaEff= new TCanvas("ControlloSigmaEff","",1200,800);
+    
+    iBin += sign*delta_iBin; 
+    
+    newHisto->SetBinContent( iBin, histo->GetBinContent(iBin) );
+    newHisto->SetBinError( iBin, histo->GetBinError(iBin) );
+    
+    width += histo->GetBinWidth( iBin );
+    
+    delta_iBin += 1;
+    sign *= -1;
+    newHisto->Draw("HISTO");
+    ControlloSigmaEff->SaveAs(("IterfitControl/"+dir+"/"+to_string(i)+".pdf").c_str());
+    i++;
+    delete ControlloSigmaEff;
+    
+  }
+
+  return width/2.;
 
 }
 
 
 void AWtdiff(const char * filename){
 
-
+  
   TFile*  file= TFile::Open(filename);
   //TTree * WFTree = (TTree*)file->Get("wf");
   TTree* digiTree = (TTree*)file->Get("digi");
@@ -110,7 +180,7 @@ void AWtdiff(const char * filename){
 	
 
 
-  const Int_t  nbinx=150,nbiny=300;
+  const Int_t  nbinx=200,nbiny=800;
 
   Int_t i;
   Double_t sigma[50],erry[50],cut[50],errx[50];
@@ -161,6 +231,8 @@ void AWtdiff(const char * filename){
   hodoTree->SetBranchAddress("X",&X);
   hodoTree->SetBranchAddress( "nFibresOnX", nFibresOnX );
   hodoTree->SetBranchAddress( "nFibresOnY", nFibresOnY );
+
+
   digiTree->GetEntry(3);
   
   cout << "timetypes   " << timetypes << endl;
@@ -175,6 +247,7 @@ void AWtdiff(const char * filename){
  
  
   LEDi=LED300;
+
   for(k=0;k<digiTree->GetEntries();k++){
     digiTree->GetEntry(k);
     
@@ -205,15 +278,15 @@ void AWtdiff(const char * filename){
   Double_t rms3=TMath::RMS(counter3,Times3);
   cout<<mean3<<"_________"<<rms3<<endl;
 
-  rymin_l=mean1-1.2*rms1;
-  rymax_l=mean1+0.8*rms1;
-  rymin_r=mean2-1.2*rms2;
-  rymax_r=mean2+0.8*rms2;
+  rymin_l=mean1-0.8*rms1;
+  rymax_l=mean1+0.5*rms1;
+  rymin_r=mean2-0.8*rms2;
+  rymax_r=mean2+0.5*rms2;
     
   
 
-  tymin=mean3-1.2*rms3;
-  tymax=mean3+0.8*rms3;
+  tymin=mean3-0.8*rms3;
+  tymax=mean3+0.5*rms3;
 
   /*rymin_l=0;
   rymax_l=10;
@@ -249,7 +322,7 @@ void AWtdiff(const char * filename){
   hr_amp->Fit("f_r","RQ0");
   hl_amp->Fit("f_l","RQ0");
 
-   TCanvas* lcheck = new TCanvas("landaucheck","landaucheck plot", 1800, 550);
+  TCanvas* lcheck = new TCanvas("landaucheck","landaucheck plot", 1200, 550);
   lcheck->Divide(3,1);
   lcheck->cd(1)->SetLogy();
   hr_amp->GetXaxis()->SetTitle("max.amplitude(mV)");
@@ -266,8 +339,8 @@ void AWtdiff(const char * filename){
 
   TH2F* h2_l= new TH2F("h2_l", "histo h2_l",nbinx,rxmin,rxmax,nbiny,rymin_l,rymax_l);
   TH2F* h2_r= new TH2F("h2_r", "histo h2_r",nbinx,rxmin,rxmax,nbiny,rymin_r,rymax_r);
-  TH2F* h2_t= new TH2F("h2_t", "histo h2_t",nbinx/1.5,txmin,txmax,nbiny,tymin,tymax);
-  TH2F* h2_time= new TH2F("h2_t", "histo h2_t",nbinx/1.5,-0.8,0.8,nbiny,tymin,tymax);
+  TH2F* h2_t= new TH2F("h2_t", "histo h2_t",nbinx,txmin,txmax,nbiny,tymin,tymax);
+  TH2F* h2_time= new TH2F("h2_time", "histo h2_t",nbinx,-0.8,0.8,nbiny,tymin,tymax);
 
   for(k=0;k<digiTree->GetEntries();k++){
 
@@ -314,18 +387,18 @@ void AWtdiff(const char * filename){
     
     histotemp_l=h2_l->ProjectionY("h2_lprojY",k,k);
     histotemp_r=h2_r->ProjectionY("h2_rprojY",k,k);
-    histotemp_t=h2_time->ProjectionY("h2_tprojY",k,k);
+    histotemp_t=h2_t->ProjectionY("h2_tprojY",k,k);
     
     TF1* gaus_l = new TF1("gaus_l","gaus",histotemp_l->GetBinCenter(histotemp_l->GetMaximumBin())-3*histotemp_l->GetRMS(), histotemp_l->GetBinCenter(histotemp_l->GetMaximumBin())+3*histotemp_l->GetRMS());
     TF1* gaus_r = new TF1("gaus_r","gaus",histotemp_r->GetBinCenter(histotemp_r->GetMaximumBin())-3*histotemp_r->GetRMS(), histotemp_r->GetBinCenter(histotemp_r->GetMaximumBin())+3*histotemp_r->GetRMS());
     TF1* gaus_t = new TF1("gaus_t","gaus",histotemp_t->GetBinCenter(histotemp_t->GetMaximumBin())-3*histotemp_t->GetRMS(), histotemp_t->GetBinCenter(histotemp_t->GetMaximumBin())+3*histotemp_t->GetRMS());
     
-    histotemp_l->Fit("gaus_l", "0R");
-    histotemp_r->Fit("gaus_r", "0R");
-    histotemp_t->Fit("gaus_t","0R");
+    histotemp_l->Fit("gaus_l", "Q0");
+    histotemp_r->Fit("gaus_r", "Q0");
+    histotemp_t->Fit("gaus_t","Q0");
 
     //xt[k]=-0.8+(Float_t)(0.8-(-0.8))/(nbinx/1.5)*k;
-    xt[k]=txmin+(Float_t)(txmax-(txmin))/(nbinx/1.5)*k;
+    xt[k]=txmin+(Float_t)(txmax-(txmin))/(nbinx)*k;
     yt[k]=histotemp_t->GetMean();
     rmsyt[k]=histotemp_t->GetMeanError();
     RMS[2][k]= histotemp_t->GetRMS();
@@ -353,13 +426,16 @@ void AWtdiff(const char * filename){
   }//chiudo for k
   
   
-  TCanvas* wf_c =new TCanvas("wf","Plot wf",1800,1100);
+  TCanvas* wf_c =new TCanvas("wf","Plot wf",1200,600);
   TGraphErrors* graph_r=new TGraphErrors(nbinx-1,x_r,y_r,0,rmsy_r);
   TGraphErrors* graph_l=new TGraphErrors(nbinx-1,x_l,y_l,0,rmsy_l);
-  TGraphErrors* graph_t=new TGraphErrors(nbinx/1.5,xt,yt,0,rmsyt);
+  TGraphErrors* graph_t=new TGraphErrors(nbinx,xt,yt,0,rmsyt);
 
-  TF1* hyp_r = new TF1("hyp_r","[0]+[1]*x+[2]*x**2+[3]*x**3+[4]*1/(x+[5])",0.15,0.80);
-  TF1* hyp_l = new TF1("hyp_l","[0]+[1]*x+[2]*x**2+[3]*x**3",0.03,0.15);
+  //TF1* hyp_r = new TF1("hyp_r","[0]+[1]*x+[2]*x**2+[3]*x**3+[4]*1/(x+[5])",0.15,0.80);
+  //TF1* hyp_l = new TF1("hyp_l","[0]+[1]*x+[2]*x**2+[3]*x**3",0.03,0.15);
+
+  TF1* hyp_r = new TF1("hyp_r","pol5",0.15,0.80);
+  TF1* hyp_l = new TF1("hyp_l","pol5",0.03,0.15);
 
   TF1* hyp_t = new TF1("hyp_t","[1]*x**2+[2]*x+[0]",-0.1,0.65);
   
@@ -424,8 +500,8 @@ void AWtdiff(const char * filename){
   
   TH2D* hc_l= new TH2D("hc_l", "histo hc_l",nbinx,rxmin,rxmax,nbiny,rymin_lc,rymax_lc);
   TH2D* hc_r= new TH2D("hc_r", "histo hc_r",nbinx,rxmin,rxmax,nbiny,rymin_rc,rymax_rc);
-  TH2D* hc_t= new TH2D("hc_t", "histo hc_t",nbinx/1.5,txmin,txmax,nbiny,tymin_c,tymax_c);
-  TH2D* hc_tdiff= new TH2D("hc_tdiff", "histo hc_tdiff",nbinx/1.5,txmin,txmax,nbiny,0,4);
+  TH2D* hc_t= new TH2D("hc_t", "histo hc_t",nbinx,txmin,txmax,nbiny,tymin,tymax);
+  TH2D* hc_tdiff= new TH2D("hc_tdiff", "histo hc_tdiff",nbinx,txmin,txmax,nbiny,tymin,tymax);
   
 
   
@@ -444,7 +520,7 @@ void AWtdiff(const char * filename){
 	   
 	   hc_t->Fill(GetHodoPosition(nFibresOnX,X),(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[AMP1]/max)-hyp_l->GetParameter(0))/2);	
 	   
-	   //	cout << "__________________" << GetHodoPosition(nFibresOnX,X) << endl;
+	   
 	 }//chiudo if
     }
    }//chiudo for k
@@ -455,7 +531,7 @@ void AWtdiff(const char * filename){
    corrh_r->Fit("gaus");
    corrh_r->Draw("same");
    
-   for(k=0;k<nbinx/1.5;k++){
+   for(k=0;k<nbinx;k++){
      TH1D* histotemp_l;
      TH1D* histotemp_r;
      TH1D* histotemp_t;
@@ -464,15 +540,15 @@ void AWtdiff(const char * filename){
      histotemp_r=hc_r->ProjectionY("hc_rprojY",k,k);
      histotemp_t=hc_t->ProjectionY("hc_tprojY",k,k);
      
-      TF1* gaus_l = new TF1("gaus_l","gaus",histotemp_l->GetBinCenter(histotemp_l->GetMaximumBin())-3*histotemp_l->GetRMS(), histotemp_l->GetBinCenter(histotemp_l->GetMaximumBin())+3*histotemp_l->GetRMS());
+     TF1* gaus_l = new TF1("gaus_l","gaus",histotemp_l->GetBinCenter(histotemp_l->GetMaximumBin())-3*histotemp_l->GetRMS(), histotemp_l->GetBinCenter(histotemp_l->GetMaximumBin())+3*histotemp_l->GetRMS());
      TF1* gaus_r = new TF1("gaus_r","gaus",histotemp_r->GetBinCenter(histotemp_r->GetMaximumBin())-3*histotemp_r->GetRMS(), histotemp_r->GetBinCenter(histotemp_r->GetMaximumBin())+3*histotemp_r->GetRMS());
      TF1* gaus_t = new TF1("gaus_t","gaus",histotemp_t->GetBinCenter(histotemp_t->GetMaximumBin())-3*histotemp_t->GetRMS(), histotemp_t->GetBinCenter(histotemp_t->GetMaximumBin())+3*histotemp_t->GetRMS());
      
-       histotemp_l->Fit("gaus_l", "0R");
-     histotemp_r->Fit("gaus_r", "0R");
-     histotemp_t->Fit("gaus_t","0R");
+     histotemp_l->Fit("gaus_l", "Q0");
+     histotemp_r->Fit("gaus_r", "Q0");
+     histotemp_t->Fit("gaus_t","Q0");
     
-    xt[k]=txmin+(Float_t)(txmax-(txmin))/(nbinx/1.5)*k;
+    xt[k]=txmin+(Float_t)(txmax-(txmin))/(nbinx)*k;
     yt[k]=gaus_t->GetParameter(1);
     rmsyt[k]=gaus_t->GetParError(1);
     RMS[2][k]= histotemp_t->GetRMS();
@@ -492,19 +568,16 @@ void AWtdiff(const char * filename){
     delete histotemp_l;
     delete histotemp_r;
     delete histotemp_t;
-     delete gaus_l;
-     delete gaus_r;
-     delete gaus_t;
-  
- 
-
-  
- }//chiudo for k
-
+    delete gaus_l;
+    delete gaus_r;
+    delete gaus_t;
+   
+   }//chiudo for k
+   
 
 TGraphErrors* graph_lc = new TGraphErrors(nbinx-1,x_l,y_l,0,rmsy_l);
 TGraphErrors* graph_rc = new TGraphErrors(nbinx-1,x_r,y_r,0,rmsy_r);
-TGraphErrors* graph_tc = new TGraphErrors(nbinx/1.5,xt,yt,0,rmsyt);
+TGraphErrors* graph_tc = new TGraphErrors(nbinx,xt,yt,0,rmsyt);
 TF1* fit_tdiff = new TF1("fit_tdiff","[0]+[1]*x+[2]*x**2",-20,20);
 
 graph_tc->Fit("fit_tdiff","R0");
@@ -544,14 +617,14 @@ for(k=0;k<nbinx;k++){
   TF1* gaus_t = new TF1("gaus_t","gaus",histotemp_t->GetBinCenter(histotemp_t->GetMaximumBin())-2*histotemp_t->GetRMS(), histotemp_t->GetBinCenter(histotemp_t->GetMaximumBin())+2*histotemp_t->GetRMS());
     
 
-  histotemp_t->Fit("gaus_t","0R");
+  histotemp_t->Fit("gaus_t","Q0R");
   yt[k]=gaus_t->GetParameter(1);
   rmsyt[k]=gaus_t->GetParError(1);
-  TCanvas* contol = new TCanvas("cntol","contol_plt",600,550);
-  gStyle->SetOptFit(1111);
+  //TCanvas* contol = new TCanvas("cntol","contol_plt",600,550);
+  //gStyle->SetOptFit(1111);
   histotemp_t->GetXaxis()->SetRangeUser(1.5,3);
-  histotemp_t->Draw();
-  gaus_t->Draw("same");
+  //h2_thistotemp_t->Draw();
+  //gaus_t->Draw("same");
 
   
  
@@ -599,50 +672,76 @@ graph_tc->Draw("P");
  TH1D* histo_ct;
  TH1D* histo_ctdiff;
  
-histo_cl = hc_l->ProjectionY("histo_cl",0,nbinx);
-histo_cr = hc_r->ProjectionY("histo_cr",0,nbinx);
+ histo_cl = hc_l->ProjectionY("histo_cl",0,nbinx);
+ histo_cr = hc_r->ProjectionY("histo_cr",0,nbinx);
+ 
+ histo_ct = hc_t->ProjectionY("histo_ct",0,nbinx);
+ histo_ctdiff = hc_tdiff->ProjectionY("histo_ctdiff",0,nbinx);
+ 
+ histo_ct->GetXaxis()->SetRangeUser(histo_ct->GetMean()-3*histo_ct->GetRMS(),histo_ct->GetMean()+3*histo_ct->GetRMS());
+ histo_ctdiff->GetXaxis()->SetRangeUser(histo_ctdiff->GetMean()-4*histo_ctdiff->GetRMS(),histo_ctdiff->GetMean()+4*histo_ctdiff->GetRMS());
+ 
+ TF1* gaus_cl = new TF1("gaus_cl","gaus");
+ TF1* gaus_cr = new TF1("gaus_cr","gaus");
+ TF1* gaus_ct = new TF1("gaus_ct","gaus",2,3);
+ TF1* gaus_ctdiff = new TF1("gaus_ctdiff","gaus", 2, 2.5);
+ 
+ histo_ct->SetLineColor(kBlack);
+ histo_cl->GetXaxis()->SetRangeUser(histo_cl->GetMean()-3*histo_cl->GetRMS(),histo_cl->GetMean()+3*histo_cl->GetRMS());
+ histo_cl->SetLineColor(kBlue);
+ histo_cr->GetXaxis()->SetRangeUser(histo_cr->GetMean()-3*histo_cr->GetRMS(),histo_cr->GetMean()+3*histo_cr->GetRMS());
+ histo_cr->SetLineColor(kRed);
+ gaus_ct->SetLineColor(kBlack);
 
-histo_ct = hc_t->ProjectionY("histo_ct",0,nbinx);
-histo_ctdiff = hc_tdiff->ProjectionY("histo_ctdiff",0,nbinx);
-
-TF1* gaus_cl = new TF1("gaus_cl","gaus");
-TF1* gaus_cr = new TF1("gaus_cr","gaus");
-TF1* gaus_ct = new TF1("gaus_ct","gaus",2,3);
-TF1* gaus_ctdiff = new TF1("gaus_ctdiff","gaus", 2, 2.5);
-
-histo_ct->SetLineColor(kBlack);
-histo_cl->SetLineColor(kBlue);
-histo_cr->SetLineColor(kRed);
-gaus_ct->SetLineColor(kBlack);
-
-TCanvas* tdiff = new TCanvas("tdiff","plot_tdiff",600,550);
+ TCanvas* tdiff = new TCanvas("tdiff","plot_tdiff",600,550);
  TLegend* l2=new TLegend(0.1,0.7,0.48,0.9);
 
- histo_ct->Fit("gaus_ct","0R","SAME");
+ histo_ct->Fit("gaus_ct","0","SAME");
  //gaus_ctdiff->SetParameter(0,gaus_ct->GetParameter(0));
  // gaus_ctdiff->SetParameter(1,gaus_ct->GetParameter(1));
  //gaus_ctdiff->SetParameter(2,gaus_ct->GetParameter(2));
- gaus_ctdiff->SetLineColor(kGreen);
- histo_ctdiff->SetLineColor(kGreen);
- histo_ctdiff->Fit("gaus_ctdiff", "0R");
+ gaus_ctdiff->SetLineColor(kRed);
+ histo_ctdiff->SetLineColor(kRed);
+ histo_ctdiff->Fit("gaus_ctdiff", "0");
 
 
- histo_ctdiff->Draw();
- gaus_ctdiff->Draw("same");
+ histo_ct->SetFillStyle(3005); 
+ histo_ct->Draw();
+ 
+ histo_ctdiff->SetFillStyle(3004);
+ histo_ctdiff->Draw("SAME");
+ 
+ gaus_ctdiff->Draw("SAME");
  gaus_ct->Draw("SAME");
- histo_ct->Draw("SAME");
+ 
+ 
+ 
+ l2->SetHeader("t_{ave}-t_{MCP} distrib");
+ l2->AddEntry(histo_ct,"t_ave-t_MCP");
+ l2->AddEntry(gaus_ct,("#sigma="+to_string(gaus_ct->GetParameter(2))).c_str());
+ l2->AddEntry(histo_ctdiff,"t_ave-t_MCP(tdiff corr)");
+ l2->AddEntry(gaus_ctdiff,("#sigma="+to_string(gaus_ctdiff->GetParameter(2))).c_str());
+ l2->Draw();
+ 
+ //TF1* fitGaus( TH1D* histo, float nSigma, bool addFunc,string name )
+ 
+ gSystem->Exec("mkdir IterfitControl/t");
+ gSystem->Exec("mkdir IterfitControl/tdiff");
+ 
 
+ TF1* iterFitCt = fitGaus(histo_ct,2.0,false,"t");
+ TF1* iterFitCtdiff = fitGaus(histo_ctdiff,2.0,false,"tdiff");
 
-l2->SetHeader("t_{ave}-t_{MCP} distrib");
-l2->AddEntry(histo_ct,"t_ave-t_MCP");
-l2->AddEntry(gaus_ct,("#sigma="+to_string(gaus_ct->GetParameter(2))).c_str());
-l2->AddEntry(histo_ctdiff,"t_ave-t_MCP(tdiff corr)");
-l2->AddEntry(gaus_ctdiff,("#sigma="+to_string(gaus_ctdiff->GetParameter(2))).c_str());
-l2->Draw();
+ float sigmaEffT,sigmaEffTdiff;
+ 
+ gSystem->Exec("mkdir IterfitControl/Efft");
+ gSystem->Exec("mkdir IterfitControl/Efftdiff");
 
+ sigmaEffT=GetSigmaEff(histo_ct ,"Efft");
+ sigmaEffTdiff=GetSigmaEff(histo_ctdiff ,"Efftdiff");
 
-cout << "########################### "<< gaus_ct->GetParameter(2)/gaus_ct->GetParameter(1) << "_________" << gaus_ctdiff->GetParameter(2)/gaus_ctdiff->GetParameter(1) << endl;
-
+ cout<< "sigmaEffT=" << sigmaEffT << "     " << "sigmaEffTdiff=" << sigmaEffT<< endl;
+ 
 bool ConfrontoTdiff=true;
 
    if(ConfrontoTdiff){

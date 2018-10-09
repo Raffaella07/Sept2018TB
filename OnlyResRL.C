@@ -148,7 +148,7 @@ float GetSigmaEff( TH1D* histo, string dir) {
     ControlloSigmaEff->SaveAs(("IterfitControl/"+dir+"/"+to_string(i)+".pdf").c_str());
     i++;
     delete ControlloSigmaEff;
-    if(i>100) break;    
+    
   }
   delete newHisto;
   return width/2.;
@@ -156,7 +156,7 @@ float GetSigmaEff( TH1D* histo, string dir) {
 }
 
 
-void AWtdiff(const char * filename){
+TH2D* AWtdiff(const char * filename){
 
   gSystem->Exec("rm -r -f IterfitControl");
   gSystem->Exec("mkdir IterfitControl");
@@ -214,13 +214,14 @@ void AWtdiff(const char * filename){
   
   
   Int_t nentries=digiTree->GetEntries(), counter1=0,counter2=0, counter3=0;
-  /* Float_t Times1[nentries],Times2[nentries],Times3[nentries];
+  /*Float_t Times1[nentries],Times2[nentries],Times3[nentries];
   
   for(k=0;k<digiTree->GetEntries();k++){
     Times1[k]=0;
     Times2[k]=0;
     Times3[k]=0;
-    } */ 
+  } 
+  */ 
   
   TH1F *hr_amp =new TH1F("hr_amp","histos_ampr",nbinx/1.3,0.0,1);
   TH1F *hl_amp =new TH1F("hl_amp","histos_ampl",nbinx/1.3,0.0,1);
@@ -257,8 +258,8 @@ void AWtdiff(const char * filename){
   digiTree->GetEntry(3);
      
   LEDi=LED300;
-  /*
-  for(k=0;k<digiTree->GetEntries();k++){
+
+  /*for(k=0;k<digiTree->GetEntries();k++){
     digiTree->GetEntry(k);
     
     if(time[NINO1+LEDi]-time[0+CFD]<15 && time[NINO1+LEDi]-time[0+CFD]>0) {
@@ -287,7 +288,8 @@ void AWtdiff(const char * filename){
   Double_t mean3=TMath::Mean(counter3,Times3);
   Double_t rms3=TMath::RMS(counter3,Times3);
   cout<<mean3<<"_________"<<rms3<<endl;
-
+  */
+  /*
   rymin_l=mean1-0.8*rms1;
   rymax_l=mean1+0.5*rms1;
   rymin_r=mean2-0.8*rms2;
@@ -298,7 +300,6 @@ void AWtdiff(const char * filename){
   tymin=mean3-0.6*rms3;
   tymax=mean3+0.5*rms3;
   */
-  
   rymin_l=1;
   rymax_l=5;
   rymin_r=1;
@@ -306,7 +307,7 @@ void AWtdiff(const char * filename){
     
   
   
-  tymin=0;
+  tymin=1;
   tymax= 5;
   
   
@@ -499,13 +500,13 @@ void AWtdiff(const char * filename){
   rymax_lc=rymax_l-hyp_l->Eval(fit_l->GetParameter(1)+0.5*fit_l->GetParameter(2))+hyp_l->GetParameter(0);
   rymin_rc=rymin_r-hyp_r->Eval(fit_r->GetParameter(1)+0.5*fit_r->GetParameter(2))+hyp_r->GetParameter(0);
   rymax_rc=rymax_r-hyp_r->Eval(fit_r->GetParameter(1)+0.5*fit_r->GetParameter(2))+hyp_r->GetParameter(0);
-  tymin_c=tymin-(hyp_l->Eval(0.1)-hyp_l->GetParameter(0)+hyp_r->Eval(0.4)-hyp_r->GetParameter(0))/2+1.5;
-  tymax_c=tymax-(hyp_l->Eval(0.1)-hyp_l->GetParameter(0)+hyp_r->Eval(0.4)-hyp_r->GetParameter(0))/2+1.5;
+  tymin_c=tymin-(hyp_l->Eval(0.1)-hyp_l->GetParameter(0)+hyp_r->Eval(0.4)-hyp_r->GetParameter(0))/2;
+  tymax_c=tymax-(hyp_l->Eval(0.1)-hyp_l->GetParameter(0)+hyp_r->Eval(0.4)-hyp_r->GetParameter(0))/2;
 
   
   TH2D* hc_l= new TH2D("hc_l", "histo hc_l",nbinx,rxmin_l,rxmax_l,nbiny,rymin_lc,rymax_lc);
   TH2D* hc_r= new TH2D("hc_r", "histo hc_r",nbinx,rxmin_r,rxmax_r,nbiny,rymin_rc,rymax_rc);
-  TH2D* hc_time= new TH2D("hc_t", "histo hc_t",nbinx,txmin,txmax,nbiny,tymin_c,tymax_c);
+  TH2D* hc_time= new TH2D("hc_t", "histo hc_t",nbinx,txmin,txmax,nbiny,tymin,tymax);
   TH2D* hc_tdiff= new TH2D("hc_tdiff", "histo hc_tdiff",nbinx,txmin,txmax,nbiny,tymin,tymax);
   
 
@@ -624,7 +625,7 @@ void AWtdiff(const char * filename){
   
   //Correzione posizione con Hodoscopio
 
-  TH2D* TimeAveVsX= new TH2D("TimeAveVsX", "TimeAve vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin_c,tymax_c);
+  TH2D* TimeAveVsX= new TH2D("TimeAveVsX", "TimeAve vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin,tymax);
   TH2D* AmpLVsX= new TH2D("AmpLVsX", "AmpL vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,rxmin_l,rxmax_l);
   TH2D* AmpRVsX= new TH2D("AmpRVsX", "AmpR vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,rxmin_r,rxmax_r);
   TH2D* TimeLVsX= new TH2D("TimaLVsX", "TimeL vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin_c,tymax_c);
@@ -681,4 +682,25 @@ void AWtdiff(const char * filename){
 
   cout<< "sigmaEffT=" << sigmaEffT << "     " << "sigmaEffTdiff=" << sigmaEffT<< endl;
   cout<<counter<<endl;
+  
+  gSystem->Exec("mv -i IterfitControl IterfitControlBis");
+
+  return TimeAveVsX;
+}
+
+int MainFun(const char* file1,const char* file2){
+
+  TH2D* HistoLeft=AWtdiff(file1);
+  TH2D* HistoRight=AWtdiff(file2);
+
+  TCanvas* HistoRL = new TCanvas("Histo","",1400,700);
+  HistoRL->Divide(2,1);
+  HistoRL->cd(1);
+  HistoLeft->Draw("COLZ");
+  HistoRL->cd(2);
+  HistoRight->Draw("COLZ");
+
+  HistoRL->SaveAs("TimeVsX.pdf");
+
+  return 0;
 }

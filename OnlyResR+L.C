@@ -156,7 +156,7 @@ float GetSigmaEff( TH1D* histo, string dir) {
 }
 
 
-void AWtdiff(const char * filename){
+TH2D* AWtdiff(const char * filename){
 
   gSystem->Exec("rm -r -f IterfitControl");
   gSystem->Exec("mkdir IterfitControl");
@@ -197,7 +197,7 @@ void AWtdiff(const char * filename){
   rxmin_r=0;
   rxmax_r=1;
 
-  const Int_t  nbinx=150,nbiny=800;
+  const Int_t  nbinx=200,nbiny=800;
 
   Int_t i;
   Double_t sigma[50],erry[50],cut[50],errx[50];
@@ -624,35 +624,39 @@ void AWtdiff(const char * filename){
   
   //Correzione posizione con Hodoscopio
 
-  TH2D* TimeAveVsX= new TH2D("TimeAveVsX", "TimeAve vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin_c,tymax_c);
+  TH2D* TimeAveVsX= new TH2D("TimeAveVsX", "TimeAve vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,-2,2);
   TH2D* AmpLVsX= new TH2D("AmpLVsX", "AmpL vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,rxmin_l,rxmax_l);
   TH2D* AmpRVsX= new TH2D("AmpRVsX", "AmpR vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,rxmin_r,rxmax_r);
-  TH2D* TimeLVsX= new TH2D("TimaLVsX", "TimeL vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin_c,tymax_c);
-  TH2D* TimeRVsX= new TH2D("TimeRVsX", "TimeR vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin_c,tymax_c);
+  //TH2D* TimeLVsX= new TH2D("TimaLVsX", "TimeL vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin_c,tymax_c);
+  //TH2D* TimeRVsX= new TH2D("TimeRVsX", "TimeR vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin_c,tymax_c);
+  TH2D* TimeLVsX= new TH2D("TimaLVsX", "TimeL vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,-2,2);
+  TH2D* TimeRVsX= new TH2D("TimeRVsX", "TimeR vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,-2,2);
   
   Int_t counter=0;
   Float_t Pos;
+
   cout<<"HERE"<<endl;
+  
   for(k=0;k<digiTree->GetEntries();k++){
     hodoTree->GetEntry(k);
     digiTree->GetEntry(k);
     infoTree->GetEntry(k);
 
     Pos=GetHodoPosition(nFibresOnX,X)-Xtable;
-
-    if (  0.8*fit_l->GetParameter(1) < amp_max[AMP1]/max && amp_max[AMP1]/max < 3*fit_l->GetParameter(1) ) {
-      AmpLVsX->Fill( Pos, amp_max[AMP1]/max);
-    }
-    
-    if (  0.8*fit_r->GetParameter(1) < amp_max[AMP2]/max && amp_max[AMP2]/max < 3*fit_r->GetParameter(1) ) {
-      AmpRVsX->Fill( Pos,amp_max[AMP2]/max);
-    }
-    
-    if (  0.8*fit_r->GetParameter(1) < amp_max[AMP2]/max && amp_max[AMP2]/max < 3*fit_r->GetParameter(1) ){ 
-      TimeAveVsX->Fill(Pos,(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[AMP1]/max)-hyp_l->GetParameter(0))/2);
-      counter++;
-    }//chiudo if
-    
+    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55){
+      if (  0.8*fit_l->GetParameter(1) < amp_max[AMP1]/max && amp_max[AMP1]/max < 3*fit_l->GetParameter(1) ) {
+	AmpLVsX->Fill( Pos, amp_max[AMP1]/max);
+      }
+      
+      if (  0.8*fit_r->GetParameter(1) < amp_max[AMP2]/max && amp_max[AMP2]/max < 3*fit_r->GetParameter(1) ) {
+	AmpRVsX->Fill( Pos,amp_max[AMP2]/max);
+      }
+      
+      if (  0.8*fit_r->GetParameter(1) < amp_max[AMP2]/max && amp_max[AMP2]/max < 3*fit_r->GetParameter(1) ){ 
+	TimeAveVsX->Fill(Pos,(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)+hyp_l->Eval(amp_max[AMP1]/max))/2);
+	counter++;
+      }//chiudo if
+    }//chiudo ptk
   }//chiudo for
   
   TCanvas* CanvTimeAveX = new TCanvas("T_aveCorrVsX","",1200,800);
@@ -681,4 +685,65 @@ void AWtdiff(const char * filename){
 
   cout<< "sigmaEffT=" << sigmaEffT << "     " << "sigmaEffTdiff=" << sigmaEffT<< endl;
   cout<<counter<<endl;
+
+  return TimeAveVsX;
+}
+
+
+
+int MainFun(const char* file1,const char* file2){
+  
+  TH2D* HistoLeft=AWtdiff(file1);
+  TH2D* HistoRight=AWtdiff(file2);
+  
+  gSystem->Exec("mkdir IterfitControl/hodo");
+  
+  TCanvas* HistoRL = new TCanvas("Histo","",1400,700);
+  HistoRL->Divide(2,1);
+  HistoRL->cd(1);
+  HistoLeft->Draw("COLZ");
+  HistoRL->cd(2);
+  HistoRight->Draw("COLZ");
+  
+  HistoRL->SaveAs("TimeVsX.pdf");
+  gSystem->Exec("mv TimeVsX.pdf IterfitControl/.");
+  
+  HistoLeft->Add(HistoRight);
+  
+  const Int_t nbinx=HistoLeft->GetNbinsX();
+
+  TCanvas* HistoFullX = new TCanvas("Histo Full Bar","",1300,900);
+  HistoLeft->GetYaxis()->SetRangeUser(-0.3,0.3);
+  HistoLeft->Draw("COLZ");
+
+  TH1D* ProjectionHodo=HistoLeft->ProjectionY("YProjectionFromTimeVsHodo",0,HistoLeft->GetNbinsX());
+  
+  TF1* FitHodoProjection=fitGaus(ProjectionHodo,1.7,false,"hodo");
+  
+  Double_t x[nbinx],y[nbinx],erry[nbinx],xmin,xmax;
+
+  xmin=HistoLeft->GetXaxis()->GetXmin();
+  xmax=HistoLeft->GetXaxis()->GetXmax();
+  
+  for(int i=0; i<nbinx;i++){
+    TH1D* histotemp;
+    histotemp=HistoLeft->ProjectionY("tempProj",i,i);
+    x[i]=xmin+(xmax-xmin)/nbinx*i;
+    y[i]=histotemp->GetMean();
+    erry[i]=histotemp->GetMeanError();
+  }
+  
+  HistoFullX->cd();
+  TGraphErrors* graphErr= new TGraphErrors(nbinx,x,y,0,erry);
+  graphErr->SetMarkerStyle(8);
+  graphErr->SetMarkerSize(.8);
+  graphErr->Draw("SAMEP");
+  
+  TF1* FitTdiff = new TF1("FitTdiff","pol5",-50,0);
+  graphErr->Fit("FitTdiff","R");
+  
+  HistoFullX->SaveAs("TimeVsFullBar.pdf");
+  gSystem->Exec("mv TimeVsFullBar.pdf IterfitControl/.");
+  
+  return 0;
 }

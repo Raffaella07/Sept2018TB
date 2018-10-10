@@ -156,7 +156,7 @@ float GetSigmaEff( TH1D* histo, string dir) {
 }
 
 
-TH2D* AWtdiff(const char * filename){
+TH2D* AWtdiff(const char * filename,TF1* myFit){
 
   gSystem->Exec("rm -r -f IterfitControl");
   gSystem->Exec("mkdir IterfitControl");
@@ -165,6 +165,8 @@ TH2D* AWtdiff(const char * filename){
   gSystem->Exec("mkdir IterfitControl/Efft");
   gSystem->Exec("mkdir IterfitControl/Efftdiff");
   gSystem->Exec("mkdir IterfitControl/a");
+  gSystem->Exec("mkdir IterfitControl/TdiffVero");
+  gSystem->Exec("mkdir IterfitControl/partialPR");
   gROOT->SetBatch(kTRUE);
   gStyle->SetOptFit(1111);
 
@@ -197,7 +199,7 @@ TH2D* AWtdiff(const char * filename){
   rxmin_r=0;
   rxmax_r=1;
 
-  const Int_t  nbinx=200,nbiny=800;
+  const Int_t  nbinx=200,nbiny=600;
 
   Int_t i;
   Double_t sigma[50],erry[50],cut[50],errx[50];
@@ -357,11 +359,12 @@ TH2D* AWtdiff(const char * filename){
     
     if(k%10000==0)cout<< "On Entry "<< k <<"/"<< digiTree->GetEntries()<<endl;
     
-      digiTree->GetEntry(k);
+    digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
+    infoTree->GetEntry(k);
     
-    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)>-11 && GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5){
-      
+    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)-Xtable>-47 && GetHodoPosition(nFibresOnX,X)-Xtable<0 && GetHodoPosition(nFibresOnY,Y)>0 && GetHodoPosition(nFibresOnY,Y)<5) {
+     
       if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) ) {
 	h2_l->Fill(amp_max[AMP1]/max,time[NINO1+LEDi]-time[PTK1+CFD]);
       }
@@ -514,19 +517,20 @@ TH2D* AWtdiff(const char * filename){
     
     digiTree->GetEntry(k);
     hodoTree->GetEntry(k);
+    infoTree->GetEntry(k);
     
-    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)>-11 && GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5){
-      if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) ) 	hc_l->Fill(amp_max[AMP1]/max,time[NINO1+LEDi]-time[0+CFD]-hyp_l->Eval(amp_max[AMP1]/max)+hyp_l->GetParameter(0));
-      
-      if (((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) ) hc_r->Fill(amp_max[AMP2]/max,time[NINO2+LEDi]-time[0+CFD]-hyp_r->Eval(amp_max[AMP2]/max)+hyp_r->GetParameter(0)); 
-      
-      if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) || ((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) )
-	{
-	  hc_time->Fill(time[NINO1+LEDi]-time[NINO2+LEDi],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[AMP1]/max)-hyp_l->GetParameter(0))/2);	
-	}//chiudo if
-    }
-  }//chiudo for k
-  
+    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)-Xtable>-47 && GetHodoPosition(nFibresOnX,X)-Xtable<0 && GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5) { //&& GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5){
+	if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) ) 	hc_l->Fill(amp_max[AMP1]/max,time[NINO1+LEDi]-time[0+CFD]-hyp_l->Eval(amp_max[AMP1]/max)+hyp_l->GetParameter(0));
+	
+	if (((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) ) hc_r->Fill(amp_max[AMP2]/max,time[NINO2+LEDi]-time[0+CFD]-hyp_r->Eval(amp_max[AMP2]/max)+hyp_r->GetParameter(0)); 
+	
+	if ((0.8*(fit_l->GetParameter(1)) < (amp_max[AMP1]/max) && (amp_max[AMP1]/max) < (3*fit_l->GetParameter(1))) || ((0.8*(fit_r->GetParameter(1)) < (amp_max[AMP2]/max) && (amp_max[AMP2]/max) < (3*fit_r->GetParameter(1)))) )
+	  {
+	    hc_time->Fill(time[NINO1+LEDi]-time[NINO2+LEDi],(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)-hyp_r->GetParameter(0)+hyp_l->Eval(amp_max[AMP1]/max)-hyp_l->GetParameter(0))/2);	
+	  }//chiudo if
+      }//chiudo pf globale
+   }//chiudo for k
+    
 
   TH1D* DistribAWCorr = hc_time->ProjectionY("DistribAWCorr",0,nbinx);
   DistribAWCorr->GetXaxis()->SetTitle("t_{ave}-t_{MCP}");
@@ -629,8 +633,8 @@ TH2D* AWtdiff(const char * filename){
   TH2D* AmpRVsX= new TH2D("AmpRVsX", "AmpR vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,rxmin_r,rxmax_r);
   //TH2D* TimeLVsX= new TH2D("TimaLVsX", "TimeL vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin_c,tymax_c);
   //TH2D* TimeRVsX= new TH2D("TimeRVsX", "TimeR vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,tymin_c,tymax_c);
-  TH2D* TimeLVsX= new TH2D("TimaLVsX", "TimeL vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,-2,2);
-  TH2D* TimeRVsX= new TH2D("TimeRVsX", "TimeR vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,-2,2);
+  TH2D* TimeLVsX= new TH2D("TimaLVsX", "TimeL(AWC) vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,-2,2);//AWCorrection
+  TH2D* TimeRVsX= new TH2D("TimeRVsX", "TimeR(AWC) vs HodoPosition",nbinx,MinHodo,MaxHodo,nbiny*2,-2,2);//AWCorrection
   
   Int_t counter=0;
   Float_t Pos;
@@ -643,7 +647,8 @@ TH2D* AWtdiff(const char * filename){
     infoTree->GetEntry(k);
 
     Pos=GetHodoPosition(nFibresOnX,X)-Xtable;
-    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55){
+   
+    if  (amp_max[PTK1]/max > 0.1 && amp_max[PTK1]/max < 0.55 && GetHodoPosition(nFibresOnX,X)-Xtable>-47 && GetHodoPosition(nFibresOnX,X)-Xtable<0 && GetHodoPosition(nFibresOnY,Y)>-2 && GetHodoPosition(nFibresOnY,Y)<5){
       if (  0.8*fit_l->GetParameter(1) < amp_max[AMP1]/max && amp_max[AMP1]/max < 3*fit_l->GetParameter(1) ) {
 	AmpLVsX->Fill( Pos, amp_max[AMP1]/max);
       }
@@ -652,10 +657,19 @@ TH2D* AWtdiff(const char * filename){
 	AmpRVsX->Fill( Pos,amp_max[AMP2]/max);
       }
       
-      if (  0.8*fit_r->GetParameter(1) < amp_max[AMP2]/max && amp_max[AMP2]/max < 3*fit_r->GetParameter(1) ){ 
-	TimeAveVsX->Fill(Pos,(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)+hyp_l->Eval(amp_max[AMP1]/max))/2);
+      if (  (0.8*fit_r->GetParameter(1) < amp_max[AMP2]/max && amp_max[AMP2]/max < 3*fit_r->GetParameter(1)) || (0.8*fit_l->GetParameter(1) < amp_max[AMP1]/max && amp_max[AMP1]/max < 3*fit_l->GetParameter(1)) ){ 
+	TimeAveVsX->Fill(Pos,(time[NINO1+LEDi]+time[NINO2+LEDi])/2-time[0+CFD]-(hyp_r->Eval(amp_max[AMP2]/max)+hyp_l->Eval(amp_max[AMP1]/max))/2-myFit->Eval(Pos));
 	counter++;
       }//chiudo if
+      
+      if( 0.8*fit_r->GetParameter(1) < amp_max[AMP2]/max && amp_max[AMP2]/max < 3*fit_r->GetParameter(1)){
+	TimeRVsX->Fill(Pos,time[NINO2+LEDi]-time[0+CFD]-hyp_r->Eval(amp_max[AMP2]/max));
+      }//chiudo if
+
+      if( 0.8*fit_l->GetParameter(1) < amp_max[AMP1]/max && amp_max[AMP1]/max < 3*fit_l->GetParameter(1)){
+	TimeLVsX->Fill(Pos,time[NINO1+LEDi]-time[0+CFD]-hyp_l->Eval(amp_max[AMP2]/max));
+      }//chiudo if
+
     }//chiudo ptk
   }//chiudo for
   
@@ -665,10 +679,16 @@ TH2D* AWtdiff(const char * filename){
   AmpRVsX->Draw("COLZ");
   TCanvas* CanvAmpLVsX = new TCanvas("AmpLVsX","",1200,800);
   AmpLVsX->Draw("COLZ");
+  TCanvas* CanvTimeLVsX = new TCanvas("TimeLVsX","",1200,800);
+  TimeLVsX->Draw("COLZ");
+  TCanvas* CanvTimeRVsX = new TCanvas("TimeRVsX","",1200,800);
+  TimeRVsX->Draw("COLZ");
   
   CanvTimeAveX->SaveAs("IterfitControl/t_aveCorrVsX.pdf");
   CanvAmpRVsX->SaveAs("IterfitControl/AmpRVsX.pdf");
   CanvAmpLVsX->SaveAs("IterfitControl/AmpLVsX.pdf");
+  CanvTimeRVsX->SaveAs("IterfitControl/TimeRVsX(AW).pdf");
+  CanvTimeLVsX->SaveAs("IterfitControl/TimeLVsX(AW).pdf");
   
   /*
     TF1* iterFitCtdiff = fitGaus(histo_ctdiff,1.7,false,"tdiff");
@@ -691,11 +711,17 @@ TH2D* AWtdiff(const char * filename){
 
 
 
+
 int MainFun(const char* file1,const char* file2){
   
-  TH2D* HistoLeft=AWtdiff(file1);
-  TH2D* HistoRight=AWtdiff(file2);
+  TF1* null= new TF1("nullo","0");
+
+  TH2D* HistoLeft=AWtdiff(file1,null);
   
+  gSystem->Exec("mv IterfitControl IterfitControlDX1");
+  
+  TH2D* HistoRight=AWtdiff(file2,null);
+
   gSystem->Exec("mkdir IterfitControl/hodo");
   
   TCanvas* HistoRL = new TCanvas("Histo","",1400,700);
@@ -713,7 +739,10 @@ int MainFun(const char* file1,const char* file2){
   const Int_t nbinx=HistoLeft->GetNbinsX();
 
   TCanvas* HistoFullX = new TCanvas("Histo Full Bar","",1300,900);
-  HistoLeft->GetYaxis()->SetRangeUser(-0.3,0.3);
+  
+  gStyle->SetOptFit(0000);
+  
+  HistoLeft->GetYaxis()->SetRangeUser(-0.15,0.15);
   HistoLeft->Draw("COLZ");
 
   TH1D* ProjectionHodo=HistoLeft->ProjectionY("YProjectionFromTimeVsHodo",0,HistoLeft->GetNbinsX());
@@ -739,11 +768,69 @@ int MainFun(const char* file1,const char* file2){
   graphErr->SetMarkerSize(.8);
   graphErr->Draw("SAMEP");
   
-  TF1* FitTdiff = new TF1("FitTdiff","pol5",-50,0);
+  TF1* FitTdiff = new TF1("FitTdiff","pol10",-46,0);
   graphErr->Fit("FitTdiff","R");
   
   HistoFullX->SaveAs("TimeVsFullBar.pdf");
   gSystem->Exec("mv TimeVsFullBar.pdf IterfitControl/.");
+
   
+  
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  gSystem->Exec("mv IterfitControl IterfitControlSX1");
+  
+  TH2D* HistoLeftCorr=AWtdiff(file1,FitTdiff);
+  gSystem->Exec("mv IterfitControl IterfitControlDX2");
+  
+  TH2D* HistoRightCorr=AWtdiff(file2,FitTdiff);
+    
+  HistoLeftCorr->Add(HistoRightCorr);
+  
+  TCanvas* TdiffCorrected= new TCanvas("TimeVsHodo(Tdiff)","",1300,900);
+  HistoLeftCorr->GetYaxis()->SetRangeUser(-0.15,0.15);
+  HistoLeftCorr->Draw("COLZ");
+  
+  for(int i=0; i<nbinx;i++){
+    TH1D* histotemp;
+    histotemp=HistoLeftCorr->ProjectionY("tempProj",i,i);
+    x[i]=xmin+(xmax-xmin)/nbinx*i;
+    y[i]=histotemp->GetMean();
+    erry[i]=histotemp->GetMeanError();
+  }
+  
+  TGraphErrors* graphErrTdiff= new TGraphErrors(nbinx,x,y,0,erry);
+  graphErrTdiff->SetMarkerStyle(8);
+  graphErrTdiff->SetMarkerSize(.8);
+  graphErrTdiff->Draw("SAMEP");
+
+  TdiffCorrected->SaveAs("TimeVsHodoTdiff.pdf");
+  gSystem->Exec("mv TimeVsHodoTdiff.pdf IterfitControl/.");
+  
+  TH1D* ResTDiffCorr=HistoLeftCorr->ProjectionY("ProjectionTDiffCorr",0,nbinx);
+  TF1* FitGaussTdiff=fitGaus(ResTDiffCorr,1.5,false,"TdiffVero");
+  
+  TCanvas* ResolutionTdiffCorr= new TCanvas("ResolutionTdiffCorr","",1300,900);
+  ResTDiffCorr->Draw("HISTO");
+  FitGaussTdiff->Draw("SAME");
+  
+  ResolutionTdiffCorr->SaveAs("GaussTdiffCorr.pdf");
+  gSystem->Exec("mv GaussTdiffCorr.pdf IterfitControl/.");
+ 
+  TCanvas* PartialBarResolution= new TCanvas("PartialBarResolution","",1300,900);
+  TH1D* PartialProjection = HistoRightCorr->ProjectionY("PartialProjection",0,nbinx);
+  TF1* partProFit=fitGaus(PartialProjection,1.7,false,"partialPR");
+  
+  PartialBarResolution->cd();
+  PartialProjection->Draw("HISTO");
+  partProFit->Draw("SAME");
+  PartialBarResolution->SaveAs("PartialProj.pdf");
+  gSystem->Exec("mv PartialProj.pdf IterfitControl/.");
+
+  gSystem->Exec("mv IterfitControl IterfitControlSX2");
+
+
   return 0;
 }
